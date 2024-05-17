@@ -1,0 +1,23 @@
+/doc/*
+.DS_Store
+*.o
+*.a
+qregistercl.hpp
+.*.swp
+.*.swo
+example
+tags
+
+# cmake local build files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+*.cmake
+include/OpenCL/
+_build/
+_cuda_build/
+_wasm_build/
+_ios_build/
+libqrack.pc
+libqrack-*/
+libqrack_*.orig.tar.xz
