@@ -106,7 +106,7 @@ QInterfacePtr QUnit::MakeEngine(bitLenInt length, bitCapInt perm)
     return toRet;
 }
 
-void QUnit::SetPermutation(bitCapInt perm, complex phaseFac)
+void QUnit::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     Dump();
 
@@ -4444,6 +4444,24 @@ void QUnit::OptimizePairBuffers(bitLenInt control, bitLenInt target, bool anti)
             tShard.RemoveAntiControl(&cShard);
         }
     }
+}
+
+real1_f QUnit::ProbAll(bitCapInt perm) {
+  return clampProb((real1_f)norm(GetAmplitudeOrProb(perm, true)));
+}
+
+real1_f QUnit::ProbAllRdm(bool roundRz, bitCapInt perm)
+{
+  if (shards[0U].unit && (shards[0U].unit->GetQubitCount() == qubitCount)) {
+    OrderContiguous(shards[0U].unit);
+    return shards[0U].unit->ProbAllRdm(roundRz, perm);
+  }
+
+  QUnitPtr clone = std::dynamic_pointer_cast<QUnit>(Clone());
+  QInterfacePtr unit = clone->EntangleAll(true);
+  clone->OrderContiguous(unit);
+
+  return unit->ProbAllRdm(roundRz, perm);
 }
 
 } // namespace Qrack

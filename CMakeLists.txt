@@ -34,6 +34,11 @@ else()
 enable_language(C CXX ASM)
 endif()
 
+if (ENABLE_OPENCL)
+  add_definitions(CL_HPP_MINIMUM_OPENCL_VERSION=110)
+  add_definitions(CL_HPP_TARGET_OPENCL_VERSION=300)
+endif()
+
 set(CMAKE_C_STANDARD 11 CACHE STRING "Building for C11")
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "Building for C++17")
 set(CMAKE_C_STANDARD_REQUIRED YES)
@@ -52,6 +57,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}"
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules"
                       ${CMAKE_MODULE_PATH})
 
+include ("cmake/Linux.cmake")
 include ("cmake/Coverage.cmake")
 include ("cmake/Format.cmake")
 include ("cmake/EmitLlvm.cmake")
@@ -96,27 +102,49 @@ if (PACK_DEBIAN)
 endif (PACK_DEBIAN)
 
 # Declare the library
-add_library (qrack STATIC
-    src/common/functions.cpp
-    src/common/parallel_for.cpp
-    src/qinterface/arithmetic.cpp
-    src/qinterface/gates.cpp
-    src/qinterface/logic.cpp
-    src/qinterface/qinterface.cpp
-    src/qinterface/rotational.cpp
-    src/qengine/qengine.cpp
-    src/qengine/arithmetic.cpp
-    src/qengine/state.cpp
-    src/qengine/utility.cpp
-    src/qengineshard.cpp
-    src/qunit.cpp
-    src/qunitclifford.cpp
-    src/qpager.cpp
-    src/qstabilizer.cpp
-    src/qstabilizerhybrid.cpp
-    src/qcircuit.cpp
-    src/qtensornetwork.cpp
-    )
+add_library (qrack_static STATIC
+             src/common/big_integer.cpp
+             src/common/functions.cpp
+             src/common/parallel_for.cpp
+             src/qinterface/arithmetic.cpp
+             src/qinterface/gates.cpp
+             src/qinterface/logic.cpp
+             src/qinterface/qinterface.cpp
+             src/qinterface/rotational.cpp
+             src/qengine/qengine.cpp
+             src/qengine/arithmetic.cpp
+             src/qengine/state.cpp
+             src/qengine/utility.cpp
+             src/qengineshard.cpp
+             src/qunit.cpp
+             src/qunitclifford.cpp
+             src/qpager.cpp
+             src/qstabilizer.cpp
+             src/qstabilizerhybrid.cpp
+             src/qcircuit.cpp
+             src/qtensornetwork.cpp)
+
+add_library (qrack SHARED
+             src/common/big_integer.cpp
+             src/common/functions.cpp
+             src/common/parallel_for.cpp
+             src/qinterface/arithmetic.cpp
+             src/qinterface/gates.cpp
+             src/qinterface/logic.cpp
+             src/qinterface/qinterface.cpp
+             src/qinterface/rotational.cpp
+             src/qengine/qengine.cpp
+             src/qengine/arithmetic.cpp
+             src/qengine/state.cpp
+             src/qengine/utility.cpp
+             src/qengineshard.cpp
+             src/qunit.cpp
+             src/qunitclifford.cpp
+             src/qpager.cpp
+             src/qstabilizer.cpp
+             src/qstabilizerhybrid.cpp
+             src/qcircuit.cpp
+             src/qtensornetwork.cpp)
 
 if (ENABLE_PTHREAD AND ENABLE_QUNIT_CPU_PARALLEL)
     target_sources (qrack PRIVATE
@@ -141,6 +169,13 @@ if (EMSCRIPTEN)
 endif (EMSCRIPTEN)
 
 set(QRACK_LIBS qrack)
+set(QRACK_LIBS_STATIC qrack_static)
+
+set_target_properties(${QRACK_LIBS}
+                      PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${QRACK_LIBS_STATIC}
+                      PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries (${QRACK_LIBS} gmp)
 
 if (ENABLE_PTHREAD)
@@ -156,7 +191,29 @@ if (FPPOW GREATER 6)
     set(QRACK_LIBS ${QRACK_LIBS} quadmath)
 endif (FPPOW GREATER 6)
 
-target_link_libraries (qrack_pinvoke ${QRACK_LIBS})
+if (ENABLE_OPENCL)
+endif()
+
+set(QRACK_LIB_WHOLE_ARCHIVE "-Wl,--whole-archive")
+set(QRACK_LIB_NO_WHOLE_ARCHIVE "-Wl,--no-whole-archive")
+set(QRACK_LIB_NO_UNDEFINED "-Wl,--no-undefined")
+
+if (ENABLE_OPENCL)
+target_link_options(qrack_pinvoke PRIVATE "-Wl,--no-undefined")
+target_link_libraries (qrack_pinvoke
+                       ${QRACK_LIB_NO_UNDEFINED}
+                       ${QRACK_LIB_WHOLE_ARCHIVE}
+                       ${QRACK_LIBS_STATIC}
+                       ${QRACK_LIB_NO_WHOLE_ARCHIVE}
+                       ${QRACK_LIBS} gmp OpenCL)
+else()
+target_link_libraries (qrack_pinvoke
+                       ${QRACK_LIB_WHOLE_ARCHIVE}
+                       ${QRACK_LIBS_STATIC}
+                       ${QRACK_LIB_NO_WHOLE_ARCHIVE}
+                       ${QRACK_LIBS} gmp)
+endif()
+
 if (EMSCRIPTEN)
     target_link_libraries (qrack_wasm ${QRACK_LIBS})
 endif (EMSCRIPTEN)
@@ -165,6 +222,7 @@ if (NOT ENABLE_EMIT_LLVM AND NOT PACK_DEBIAN)
     add_executable (unittest
         test/test_main.cpp
         test/tests.cpp
+        test/prob.cpp
         )
 
     target_link_libraries (unittest ${QRACK_LIBS})
@@ -173,6 +231,7 @@ if (NOT ENABLE_EMIT_LLVM AND NOT PACK_DEBIAN)
     add_executable (benchmarks
         test/benchmarks_main.cpp
         test/benchmarks.cpp
+        test/prob.cpp
         )
 
     target_link_libraries (benchmarks ${QRACK_LIBS})

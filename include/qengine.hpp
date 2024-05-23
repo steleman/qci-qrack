@@ -68,37 +68,29 @@ protected:
     void EitherMtrx(const std::vector<bitLenInt>& controls, complex const* mtrx, bitLenInt target, bool isAnti);
 
 public:
-    QEngine(bitLenInt qBitCount, qrack_rand_gen_ptr rgp = nullptr, bool doNorm = false, bool randomGlobalPhase = true,
-        bool useHostMem = false, bool useHardwareRNG = true, real1_f norm_thresh = REAL1_EPSILON)
-        : QInterface(qBitCount, rgp, doNorm, useHardwareRNG, randomGlobalPhase, norm_thresh)
-        , useHostRam(useHostMem)
-        , runningNorm(ONE_R1)
-        , maxQPowerOcl(pow2Ocl(qBitCount))
-    {
+    QEngine(bitLenInt qBitCount, qrack_rand_gen_ptr rgp = nullptr,
+            bool doNorm = false, bool randomGlobalPhase = true,
+            bool useHostMem = false, bool useHardwareRNG = true,
+            real1_f norm_thresh = REAL1_EPSILON)
+    : QInterface(qBitCount, rgp, doNorm, useHardwareRNG, randomGlobalPhase,
+                 norm_thresh),
+      useHostRam(useHostMem),
+      runningNorm(ONE_R1),
+      maxQPowerOcl(static_cast<uint32_t>(pow2Ocl(qBitCount))) {
         if (qBitCount > (sizeof(bitCapIntOcl) * bitsInByte)) {
-            throw std::invalid_argument(
-                "Cannot instantiate a register with greater capacity than native types on emulating system.");
+          throw std::invalid_argument(
+            "Cannot instantiate a register with greater capacity than native types on emulating system.");
         }
-    };
+      }
 
     /** Default constructor, primarily for protected internal use */
-    QEngine()
-        : useHostRam(false)
-        , runningNorm(ONE_R1)
-        , maxQPowerOcl(0U)
-    {
-        // Intentionally left blank
-    }
+    QEngine() : useHostRam(false), runningNorm(ONE_R1), maxQPowerOcl(0U) { }
 
-    virtual ~QEngine()
-    {
-        // Virtual destructor for inheritance
-    }
+    virtual ~QEngine() = default;
 
-    virtual void SetQubitCount(bitLenInt qb)
-    {
-        QInterface::SetQubitCount(qb);
-        maxQPowerOcl = (bitCapIntOcl)maxQPower;
+    virtual void SetQubitCount(bitLenInt qb) {
+      QInterface::SetQubitCount(qb);
+      maxQPowerOcl = static_cast<bitCapIntOcl>(QInterface::maxQPower);
     }
 
     /** Get in-flight renormalization factor */
@@ -244,14 +236,7 @@ public:
     using QInterface::FSim;
     virtual void FSim(real1_f theta, real1_f phi, bitLenInt qubitIndex1, bitLenInt qubitIndex2);
 
-    virtual real1_f ProbAll(bitCapInt fullRegister)
-    {
-        if (doNormalize) {
-            NormalizeState();
-        }
-
-        return clampProb((real1_f)norm(GetAmplitude(fullRegister)));
-    }
+    virtual real1_f ProbAll(bitCapInt fullRegister);
     virtual real1_f CtrlOrAntiProb(bool controlState, bitLenInt control, bitLenInt target);
     virtual real1_f CProb(bitLenInt control, bitLenInt target) { return CtrlOrAntiProb(true, control, target); }
     virtual real1_f ACProb(bitLenInt control, bitLenInt target) { return CtrlOrAntiProb(false, control, target); }

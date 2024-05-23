@@ -87,7 +87,7 @@ QInterfacePtr QStabilizer::Clone()
     return clone;
 }
 
-void QStabilizer::SetPermutation(bitCapInt perm, complex phaseFac)
+void QStabilizer::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     Dump();
 

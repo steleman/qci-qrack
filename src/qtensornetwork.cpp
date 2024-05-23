@@ -326,4 +326,12 @@ void QTensorNetwork::FSim(real1_f theta, real1_f phi, bitLenInt qubit1, bitLenIn
 
     throw std::domain_error("QTensorNetwork::FSim() not implemented for irreducible cases!");
 }
+
+real1_f QTensorNetwork::ProbAll(bitCapInt fullRegister)
+{
+  real1_f toRet;
+  RunAsAmplitudes([&](QInterfacePtr ls) { toRet = ls->ProbAll(fullRegister); });
+  return toRet;
+}
+
 } // namespace Qrack

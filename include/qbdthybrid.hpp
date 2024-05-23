@@ -322,7 +322,7 @@ public:
         }
         return engine->GetAmplitude(perm);
     }
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         if (qbdt) {
             qbdt->SetAmplitude(perm, amp);
@@ -330,7 +330,7 @@ public:
             engine->SetAmplitude(perm, amp);
         }
     }
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG)
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG)
     {
         if (qbdt) {
             qbdt->SetPermutation(perm, phaseFac);
@@ -856,15 +856,8 @@ public:
         }
         return engine->Prob(qubitIndex);
     }
-    real1_f ProbAll(bitCapInt fullRegister)
-    {
-        const real1_f toRet = qbdt ? qbdt->ProbAll(fullRegister) : engine->ProbAll(fullRegister);
-        if (toRet >= (ONE_R1_F - FP_NORM_EPSILON)) {
-            SetPermutation(fullRegister);
-        }
+    virtual real1_f ProbAll(bitCapInt fullRegister) override;
 
-        return toRet;
-    }
     real1_f ProbMask(bitCapInt mask, bitCapInt permutation)
     {
         if (qbdt) {

@@ -139,27 +139,30 @@ inline bitLenInt log2(bitCapInt n) {
 }
 
 inline bitCapInt pow2(bitLenInt p) {
-  return ONE_BCI << p;
+  return ONE_BCI << static_cast<uint32_t>(p);
 }
 
 inline bitCapIntOcl pow2Ocl(bitLenInt p) {
-  return 1UL << p;
+  return bitCapIntOcl(1UL << static_cast<uint32_t>(p));
 }
 
 inline bitCapInt pow2Mask(bitLenInt p) {
-    bitCapInt toRet = ONE_BCI << p;
+    bitCapInt toRet = ONE_BCI << static_cast<uint32_t>(p);
     bi_decrement(&toRet, 1U);
     return toRet;
 }
 inline bitCapIntOcl pow2MaskOcl(bitLenInt p) {
-  return ((bitCapIntOcl)1U << p) - 1U;
+  return bitCapIntOcl((1U << static_cast<uint32_t>(p)) - 1U);
 }
 
-inline bitCapInt bitSlice(const bitLenInt& bit, const bitCapInt& source) { return (ONE_BCI << bit) & source; }
-inline bitCapIntOcl bitSliceOcl(const bitLenInt& bit, const bitCapIntOcl& source)
-{
-    return ((bitCapIntOcl)1U << bit) & source;
+inline bitCapInt bitSlice(const bitLenInt& bit, const bitCapInt& source) {
+  return (ONE_BCI << bit) & source;
 }
+
+inline bitCapIntOcl bitSliceOcl(const bitLenInt& bit, const bitCapIntOcl& source) {
+    return bitCapIntOcl((1U << bit) & source);
+}
+
 inline bitCapInt bitRegMask(const bitLenInt& start, const bitLenInt& length)
 {
     bitCapInt toRet = ONE_BCI << length;
@@ -221,7 +224,6 @@ bitCapInt intPow(bitCapInt base, bitCapInt power);
 bitCapIntOcl intPowOcl(bitCapIntOcl base, bitCapIntOcl power);
 
 #if QBCAPPOW > 6
-std::ostream& operator<<(std::ostream& os, bitCapInt b);
 std::istream& operator>>(std::istream& is, bitCapInt& b);
 #endif
 

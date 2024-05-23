@@ -11,6 +11,7 @@
 // for details.
 
 #include "qinterface.hpp"
+#include "common/big_integer.hpp"
 
 namespace Qrack {
 

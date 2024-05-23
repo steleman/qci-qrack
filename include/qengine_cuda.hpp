@@ -340,11 +340,14 @@ public:
 
     bitCapIntOcl GetMaxSize() { return device_context->GetMaxAlloc() / sizeof(complex); };
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     using QEngine::UniformlyControlledSingleBit;
-    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls, bitLenInt qubitIndex,
-        complex const* mtrxs, const std::vector<bitCapInt>& mtrxSkipPowers, bitCapInt mtrxSkipValueMask);
+    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls,
+                                      bitLenInt qubitIndex,
+                                      complex const* mtrxs,
+                                      const std::vector<bitCapInt>& mtrxSkipPowers,
+                                      bitCapInt mtrxSkipValueMask);
     void UniformParityRZ(bitCapInt mask, real1_f angle);
     void CUniformParityRZ(const std::vector<bitLenInt>& controls, bitCapInt mask, real1_f angle);
 
@@ -353,9 +356,11 @@ public:
     using QEngine::Z;
     void Z(bitLenInt target);
     using QEngine::Invert;
-    void Invert(complex topRight, complex bottomLeft, bitLenInt qubitIndex);
+    void Invert(const complex& topRight, const complex& bottomLeft,
+                bitLenInt qubitIndex);
     using QEngine::Phase;
-    void Phase(complex topLeft, complex bottomRight, bitLenInt qubitIndex);
+    void Phase(const complex& topLeft, const complex& bottomRight,
+               bitLenInt qubitIndex);
 
     void XMask(bitCapInt mask);
     void PhaseParity(real1_f radians, bitCapInt mask);
@@ -439,7 +444,7 @@ public:
     void GetProbs(real1* outputProbs);
     bitCapInt MAll();
     complex GetAmplitude(bitCapInt perm);
-    void SetAmplitude(bitCapInt perm, complex amp);
+    void SetAmplitude(bitCapInt perm, const complex& amp);
 
     real1_f SumSqrDiff(QInterfacePtr toCompare)
     {

@@ -12,6 +12,7 @@
 
 #include "qengine_opencl.hpp"
 
+#include <vector>
 #include <algorithm>
 #include <thread>
 
@@ -73,25 +74,28 @@ namespace Qrack {
     return; \
   }
 
-QEngineOCL::QEngineOCL(bitLenInt qBitCount, bitCapInt initState, qrack_rand_gen_ptr rgp, complex phaseFac, bool doNorm,
-    bool randomGlobalPhase, bool useHostMem, int64_t devID, bool useHardwareRNG, bool ignored, real1_f norm_thresh,
-    std::vector<int64_t> devList, bitLenInt qubitThreshold, real1_f sep_thresh)
-    : QEngine(qBitCount, rgp, doNorm, randomGlobalPhase, useHostMem, useHardwareRNG, norm_thresh)
-    , didInit(false)
-    , unlockHostMem(false)
-    , callbackError(CL_SUCCESS)
-    , nrmGroupSize(0U)
-    , totalOclAllocSize(0U)
-    , deviceID(devID)
-    , wait_refs()
-    , nrmArray(new real1[0], [](real1* r) { delete[] r; })
-{
+QEngineOCL::QEngineOCL(bitLenInt qBitCount, bitCapInt initState,
+                       qrack_rand_gen_ptr rgp, complex phaseFac, bool doNorm,
+                       bool randomGlobalPhase, bool useHostMem, int64_t devID,
+                       bool useHardwareRNG, bool ignored, real1_f norm_thresh,
+                       const std::vector<int64_t>& devList, bitLenInt qubitThreshold,
+                       real1_f sep_thresh)
+  : QEngine(qBitCount, rgp, doNorm, randomGlobalPhase, useHostMem,
+            useHardwareRNG, norm_thresh),
+  didInit(false),
+  unlockHostMem(false),
+  callbackError(CL_SUCCESS),
+  nrmGroupSize(0U),
+  totalOclAllocSize(0U),
+  deviceID(devID),
+  wait_refs(),
+  nrmArray(new real1[0], [](real1* r) { delete[] r; }) {
     InitOCL(devID);
     clFinish();
     if (qubitCount) {
-        SetPermutation(initState, phaseFac);
+      SetPermutation(initState, phaseFac);
     } else {
-        ZeroAmplitudes();
+      ZeroAmplitudes();
     }
 }
 
@@ -258,35 +262,38 @@ void QEngineOCL::ShuffleBuffers(QEnginePtr engine)
         engineOcl->ClearBuffer(engineOcl->stateBuffer, 0U, engineOcl->maxQPowerOcl);
     }
 
-    const bitCapIntOcl halfMaxQPower = maxQPowerOcl >> 1U;
+    bitCapIntOcl halfMaxQPower = maxQPowerOcl / 2U;
 
     if (device_context->context_id != engineOcl->device_context->context_id) {
         LockSync(CL_MAP_READ | CL_MAP_WRITE);
         engineOcl->LockSync(CL_MAP_READ | CL_MAP_WRITE);
 
-        std::swap_ranges(
-            engineOcl->stateVec.get(), engineOcl->stateVec.get() + halfMaxQPower, stateVec.get() + halfMaxQPower);
-
+        std::swap_ranges(engineOcl->stateVec.get(),
+                         engineOcl->stateVec.get() + halfMaxQPower,
+                         stateVec.get() + halfMaxQPower);
         engineOcl->UnlockSync();
         UnlockSync();
 
         return;
     }
 
-    const bitCapIntOcl bciArgs[BCI_ARG_LEN]{ halfMaxQPower, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U };
+    std::vector<bitCapIntOcl> bciArgs(BCI_ARG_LEN);
+    bciArgs = { halfMaxQPower, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 
     EventVecPtr waitVec = ResetWaitEvents();
     PoolItemPtr poolItem = GetFreePoolItem();
 
     cl::Event writeArgsEvent;
-    DISPATCH_TEMP_WRITE(waitVec, *(poolItem->ulongBuffer), sizeof(bitCapIntOcl), bciArgs, writeArgsEvent);
+    DISPATCH_TEMP_WRITE(waitVec, *(poolItem->ulongBuffer), sizeof(bitCapIntOcl),
+                        bciArgs.data(), writeArgsEvent);
     writeArgsEvent.wait();
 
     const size_t ngc = FixWorkItemCount(halfMaxQPower, nrmGroupCount);
     const size_t ngs = FixGroupSize(ngc, nrmGroupSize);
 
     engineOcl->clFinish();
-    WaitCall(OCL_API_SHUFFLEBUFFERS, ngc, ngs, { stateBuffer, engineOcl->stateBuffer, poolItem->ulongBuffer });
+    WaitCall(OCL_API_SHUFFLEBUFFERS, ngc, ngs, { stateBuffer, engineOcl->stateBuffer,
+                                                 poolItem->ulongBuffer });
     // engineOcl->wait_refs.emplace_back(device_context->wait_events);
 
     runningNorm = REAL1_DEFAULT_ARG;
@@ -666,7 +673,7 @@ void QEngineOCL::InitOCL(int64_t devID) { SetDevice(devID); }
 
 void QEngineOCL::ResetStateBuffer(BufferPtr nStateBuffer) { stateBuffer = nStateBuffer; }
 
-void QEngineOCL::SetPermutation(bitCapInt perm, complex phaseFac)
+void QEngineOCL::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     clDump();
 
@@ -711,35 +718,37 @@ void QEngineOCL::Z(bitLenInt qubit)
     Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PAULIZ);
 }
 
-void QEngineOCL::Invert(complex topRight, complex bottomLeft, bitLenInt qubitIndex)
-{
-    if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topRight)) && IS_NORM_0(topRight - bottomLeft)) {
-        X(qubitIndex);
-        return;
-    }
+void QEngineOCL::Invert(const complex& topRight, const complex& bottomLeft,
+                        bitLenInt qubitIndex) {
+  if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topRight)) &&
+      IS_NORM_0(topRight - bottomLeft)) {
+    X(qubitIndex);
+    return;
+  }
 
     const complex pauliX[4]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
     const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
     Apply2x2(0U, qPowers[0], pauliX, 1U, qPowers, false, SPECIAL_2X2::INVERT);
 }
 
-void QEngineOCL::Phase(complex topLeft, complex bottomRight, bitLenInt qubitIndex)
-{
-    if (randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) {
-        if (IS_NORM_0(topLeft - bottomRight)) {
-            return;
-        }
-
-        if (IS_NORM_0(topLeft + bottomRight)) {
-            Z(qubitIndex);
-            return;
-        }
+void QEngineOCL::Phase(const complex& topLeft, const complex& bottomRight,
+                       bitLenInt qubitIndex) {
+  if (randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) {
+    if (IS_NORM_0(topLeft - bottomRight)) {
+      return;
     }
 
-    const complex pauliZ[4]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
-    const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
-    Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PHASE);
+    if (IS_NORM_0(topLeft + bottomRight)) {
+      Z(qubitIndex);
+      return;
+    }
+  }
+
+  const complex pauliZ[4]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
+  const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
+  Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PHASE);
 }
+
 void QEngineOCL::XMask(bitCapInt mask)
 {
     if (bi_compare_0(mask) == 0) {
@@ -768,9 +777,10 @@ void QEngineOCL::PhaseParity(real1_f radians, bitCapInt mask)
     BitMask((bitCapIntOcl)mask, OCL_API_PHASE_PARITY, radians);
 }
 
-void QEngineOCL::Apply2x2(bitCapIntOcl offset1, bitCapIntOcl offset2, const complex* mtrx, bitLenInt bitCount,
-    const bitCapIntOcl* qPowersSorted, bool doCalcNorm, SPECIAL_2X2 special, real1_f norm_thresh)
-{
+void QEngineOCL::Apply2x2(bitCapIntOcl offset1, bitCapIntOcl offset2,
+                          const complex* mtrx, bitLenInt bitCount,
+                          const bitCapIntOcl* qPowersSorted, bool doCalcNorm,
+                          SPECIAL_2X2 special, real1_f norm_thresh) {
     CHECK_ZERO_SKIP();
 
     if ((offset1 >= maxQPowerOcl) || (offset2 >= maxQPowerOcl)) {
@@ -1106,7 +1116,7 @@ void QEngineOCL::UniformlyControlledSingleBit(const std::vector<bitLenInt>& cont
 
 void QEngineOCL::UniformParityRZ(bitCapInt mask, real1_f angle)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::UniformParityRZ mask out-of-bounds!");
     }
 
@@ -1145,7 +1155,7 @@ void QEngineOCL::CUniformParityRZ(const std::vector<bitLenInt>& controls, bitCap
         return;
     }
 
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::CUniformParityRZ mask out-of-bounds!");
     }
 
@@ -1226,7 +1236,7 @@ void QEngineOCL::ApplyM(bitCapInt qPower, bool result, complex nrm)
 
 void QEngineOCL::ApplyM(bitCapInt mask, bitCapInt result, complex nrm)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::ApplyM mask out-of-bounds!");
     }
 
@@ -1763,7 +1773,7 @@ void QEngineOCL::ProbRegAll(bitLenInt start, bitLenInt length, real1* probsArray
 // Returns probability of permutation of the register
 real1_f QEngineOCL::ProbMask(bitCapInt mask, bitCapInt permutation)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::ProbMask mask out-of-bounds!");
     }
 
@@ -1813,7 +1823,7 @@ real1_f QEngineOCL::ProbMask(bitCapInt mask, bitCapInt permutation)
 
 void QEngineOCL::ProbMaskAll(bitCapInt mask, real1* probsArray)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::ProbMaskAll mask out-of-bounds!");
     }
 
@@ -1898,7 +1908,7 @@ void QEngineOCL::ProbMaskAll(bitCapInt mask, real1* probsArray)
 
 real1_f QEngineOCL::ProbParity(bitCapInt mask)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::ProbParity mask out-of-bounds!");
     }
 
@@ -1919,7 +1929,7 @@ real1_f QEngineOCL::ProbParity(bitCapInt mask)
 
 bool QEngineOCL::ForceMParity(bitCapInt mask, bool result, bool doForce)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::ForceMParity mask out-of-bounds!");
     }
 
@@ -3005,7 +3015,7 @@ bitCapInt QEngineOCL::MAll()
 
 complex QEngineOCL::GetAmplitude(bitCapInt perm)
 {
-    if (bi_compare(perm, maxQPower) >= 0) {
+    if (bi_compare(perm, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::GetAmplitude argument out-of-bounds!");
     }
 
@@ -3021,9 +3031,9 @@ complex QEngineOCL::GetAmplitude(bitCapInt perm)
     return amp;
 }
 
-void QEngineOCL::SetAmplitude(bitCapInt perm, complex amp)
+void QEngineOCL::SetAmplitude(bitCapInt perm, const complex& amp)
 {
-    if (bi_compare(perm, maxQPower) >= 0) {
+    if (bi_compare(perm, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineOCL::SetAmplitude argument out-of-bounds!");
     }
 

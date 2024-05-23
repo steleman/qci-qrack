@@ -198,8 +198,8 @@ public:
         return toRet;
     }
 
-    void SetPermutation(bitCapInt initState, complex phaseFac = CMPLX_DEFAULT_ARG)
-    {
+    void SetPermutation(bitCapInt initState,
+                        const complex& phaseFac = CMPLX_DEFAULT_ARG) {
         circuit.clear();
         measurements.clear();
         layerStack = NULL;
@@ -243,7 +243,7 @@ public:
         RunAsAmplitudes([&](QInterfacePtr ls) { toRet = ls->GetAmplitude(perm); });
         return toRet;
     }
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         throw std::domain_error("QTensorNetwork::SetAmplitude() not implemented!");
     }
@@ -301,12 +301,8 @@ public:
         RunAsAmplitudes([&](QInterfacePtr ls) { toRet = ls->Prob(qubit); }, { qubit });
         return toRet;
     }
-    real1_f ProbAll(bitCapInt fullRegister)
-    {
-        real1_f toRet;
-        RunAsAmplitudes([&](QInterfacePtr ls) { toRet = ls->ProbAll(fullRegister); });
-        return toRet;
-    }
+
+    virtual real1_f ProbAll(bitCapInt fullRegister) override;
 
     bool ForceM(bitLenInt qubit, bool result, bool doForce = true, bool doApply = true);
 

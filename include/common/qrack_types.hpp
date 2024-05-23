@@ -36,20 +36,6 @@
 #include "half.hpp"
 #endif
 
-namespace Qrack {
-
-#if 0
-#if QBCAPPOW < 8
-using bitLenInt = uint8_t;
-#elif QBCAPPOW < 16
-using bitLenInt = uint16_t;
-#elif QBCAPPOW < 32U
-using bitLenInt = uint32_t;
-#else
-using bitLenInt = uint64_t;
-#endif
-#endif
-
 #if QBCAPPOW < 32U
 using bitLenInt = uint32_t;
 #else
@@ -75,12 +61,10 @@ using bitCapInt = uint64_t;
 using bitCapInt = Qrack::BigInteger;
 #endif
 
-} // namespace Qrack
-
 #if FPPOW < 5
 #ifdef __arm__
 namespace Qrack {
-typedef std::complex<__fp16> complex;
+using complex = std::complex<__fp16>;
 typedef __fp16 real1;
 typedef float real1_f;
 typedef float real1_s;
@@ -90,14 +74,14 @@ typedef float real1_s;
 #endif
 #if defined(__STDCPP_FLOAT16_T__)
 namespace Qrack {
-typedef std::complex<float16_t> complex;
+using complex = std::complex<float16_t>;
 typedef float16_t real1;
 typedef float real1_f;
 typedef float real1_s;
 #else
 #include "half.hpp"
 namespace Qrack {
-typedef std::complex<half_float::half> complex;
+using complex = std::complex<half_float::half>;
 typedef half_float::half real1;
 typedef float real1_f;
 typedef float real1_s;
@@ -105,13 +89,13 @@ typedef float real1_s;
 #endif
 #elif FPPOW < 6
 namespace Qrack {
-typedef std::complex<float> complex;
+using complex = std::complex<float>;
 typedef float real1;
 typedef float real1_f;
 typedef float real1_s;
 #elif FPPOW < 7
 namespace Qrack {
-typedef std::complex<double> complex;
+using complex = std::complex<double>;
 typedef double real1;
 typedef double real1_f;
 typedef double real1_s;
@@ -121,7 +105,7 @@ typedef double real1_s;
 #endif
 #if defined(__STDCPP_FLOAT128_T__)
 namespace Qrack {
-typedef std::complex<float128_t> complex;
+using complex = std::complex<float128_t>;
 typedef float128_t real1;
 typedef float128_t real1_f;
 typedef double real1_s;
@@ -129,16 +113,16 @@ typedef double real1_s;
 #include <boost/multiprecision/float128.hpp>
 #include <quadmath.h>
 namespace Qrack {
-typedef std::complex<boost::multiprecision::float128> complex;
+using complex = std::complex<boost::multiprecision::float128>;
 typedef boost::multiprecision::float128 real1;
 typedef boost::multiprecision::float128 real1_f;
 typedef double real1_s;
 #endif
 #endif
 
-const bitCapInt ONE_BCI = 1U;
-const bitCapInt ZERO_BCI = 0U;
-constexpr bitLenInt bitsInCap = ((bitLenInt)1U) << ((bitLenInt)QBCAPPOW);
+const bitCapInt ONE_BCI = bitCapInt(1UL);
+const bitCapInt ZERO_BCI = bitCapInt(0UL);
+constexpr bitLenInt bitsInCap = bitLenInt(1U) << bitLenInt(QBCAPPOW);
 
 typedef std::shared_ptr<complex> BitOp;
 
@@ -256,11 +240,14 @@ constexpr real1_f SQRT1_2_R1 = (real1_f)M_SQRT1_2;
 #endif
 #endif
 
-QRACK_CONST complex ONE_CMPLX = complex(ONE_R1, ZERO_R1);
-QRACK_CONST complex ZERO_CMPLX = complex(ZERO_R1, ZERO_R1);
-QRACK_CONST complex I_CMPLX = complex(ZERO_R1, ONE_R1);
-QRACK_CONST complex CMPLX_DEFAULT_ARG = complex(REAL1_DEFAULT_ARG, REAL1_DEFAULT_ARG);
-QRACK_CONST real1 FP_NORM_EPSILON = (real1)(std::numeric_limits<real1>::epsilon() / 2);
-QRACK_CONST real1_f TRYDECOMPOSE_EPSILON = (real1_f)(16 * FP_NORM_EPSILON);
+constexpr complex ONE_CMPLX = { ONE_R1, ZERO_R1 };
+constexpr complex ZERO_CMPLX = { ZERO_R1, ZERO_R1 };
+constexpr complex I_CMPLX = { ZERO_R1, ONE_R1 };
+constexpr complex CMPLX_DEFAULT_ARG = { REAL1_DEFAULT_ARG, REAL1_DEFAULT_ARG };
+
+constexpr real1 FP_NORM_EPSILON = (real1)(std::numeric_limits<real1>::epsilon() / 2);
+constexpr real1_f TRYDECOMPOSE_EPSILON = (real1_f)(16 * FP_NORM_EPSILON);
 constexpr real1_f FP_NORM_EPSILON_F = std::numeric_limits<real1_f>::epsilon() / 2;
+
 } // namespace Qrack
+

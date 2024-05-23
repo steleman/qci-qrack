@@ -476,15 +476,19 @@ public:
 
     void GetQuantumState(complex* outputState);
     void GetProbs(real1* outputProbs);
-    complex GetAmplitude(bitCapInt perm) { return GetAmplitudeOrProb(perm, false); }
-    real1_f ProbAll(bitCapInt perm) { return (real1_f)norm(GetAmplitudeOrProb(perm, true)); }
+    complex GetAmplitude(bitCapInt perm) {
+      return GetAmplitudeOrProb(perm, false);
+    }
+
+    virtual real1_f ProbAll(bitCapInt perm) override;
+
     void SetQuantumState(const complex* inputState);
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         SwitchToEngine();
         engine->SetAmplitude(perm, amp);
     }
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     void Swap(bitLenInt qubit1, bitLenInt qubit2);
     void ISwap(bitLenInt qubit1, bitLenInt qubit2) { ISwapHelper(qubit1, qubit2, false); }
@@ -794,7 +798,7 @@ public:
     void NormalizeState(
         real1_f nrm = REAL1_DEFAULT_ARG, real1_f norm_thresh = REAL1_DEFAULT_ARG, real1_f phaseArg = ZERO_R1_F);
 
-    real1_f ProbAllRdm(bool roundRz, bitCapInt fullRegister);
+    virtual real1_f ProbAllRdm(bool roundRz, bitCapInt fullRegister) override;
     real1_f ProbMaskRdm(bool roundRz, bitCapInt mask, bitCapInt permutation);
     real1_f ExpectationBitsAll(const std::vector<bitLenInt>& bits, bitCapInt offset = ZERO_BCI)
     {

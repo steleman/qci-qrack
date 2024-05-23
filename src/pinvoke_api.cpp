@@ -7,6 +7,7 @@
 // for details.
 
 #include "pinvoke_api.hpp"
+#include "qinterface.hpp"
 #include "qcircuit.hpp"
 #include "qneuron.hpp"
 
@@ -270,6 +271,12 @@ std::vector<QCircuitPtr> circuits;
 std::map<QCircuit*, std::mutex> circuitMutexes;
 std::vector<bool> circuitReservations;
 bitLenInt _maxShardQubits = 0U;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bitLenInt MaxShardQubits()
 {
     if (!_maxShardQubits) {
@@ -581,6 +588,22 @@ bitCapInt _combineA(uintq na, const uintq* a)
     return a[0U];
 #endif
 }
+
+void ProbAll(uint64_t sid, uint64_t qlen, uint64_t* q, double* probs)
+{
+  assert(q && "invalid qubit pointer!");
+  assert(probs && "invalid probs pointer!");
+
+  QInterfacePtr simulator = simulators[sid];
+
+  for (uint64_t i = 0UL; i < qlen; ++i) {
+    probs[i] = simulator->ProbAll(q[i]);
+  }
+}
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 extern "C" {
 
@@ -2025,7 +2048,7 @@ MICROSOFT_QUANTUM_DECL void MeasureShots(
 
     std::vector<bitCapInt> qPowers(n);
     for (uintq i = 0U; i < n; ++i) {
-        qPowers[i] = Qrack::pow2(shards[simulator.get()][q[i]]);
+        qPowers[i] = pow2(shards[simulator.get()][q[i]]);
     }
 
     try {

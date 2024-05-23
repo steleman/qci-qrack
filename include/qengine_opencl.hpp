@@ -269,11 +269,15 @@ public:
      * instability). For safety, "useHostMem" can be turned on.
      */
 
-    QEngineOCL(bitLenInt qBitCount, bitCapInt initState, qrack_rand_gen_ptr rgp = nullptr,
-        complex phaseFac = CMPLX_DEFAULT_ARG, bool doNorm = false, bool randomGlobalPhase = true,
-        bool useHostMem = false, int64_t devID = -1, bool useHardwareRNG = true, bool ignored = false,
-        real1_f norm_thresh = REAL1_EPSILON, std::vector<int64_t> ignored2 = {}, bitLenInt ignored4 = 0U,
-        real1_f ignored3 = FP_NORM_EPSILON_F);
+    QEngineOCL(bitLenInt qBitCount, bitCapInt initState,
+               qrack_rand_gen_ptr rgp = nullptr,
+               complex phaseFac = CMPLX_DEFAULT_ARG, bool doNorm = false,
+               bool randomGlobalPhase = true,
+               bool useHostMem = false, int64_t devID = -1,
+               bool useHardwareRNG = true, bool ignored = false,
+               real1_f norm_thresh = REAL1_EPSILON,
+               const std::vector<int64_t>& ignored2 = {}, bitLenInt ignored4 = 0U,
+               real1_f ignored3 = FP_NORM_EPSILON_F);
 
     ~QEngineOCL()
     {
@@ -360,13 +364,17 @@ public:
 
     bitCapIntOcl GetMaxSize() { return device_context->GetMaxAlloc() / sizeof(complex); };
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     using QEngine::UniformlyControlledSingleBit;
-    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls, bitLenInt qubitIndex,
-        const complex* mtrxs, const std::vector<bitCapInt>& mtrxSkipPowers, bitCapInt mtrxSkipValueMask);
+    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls,
+                                      bitLenInt qubitIndex,
+                                      const complex* mtrxs,
+                                      const std::vector<bitCapInt>& mtrxSkipPowers,
+                                      bitCapInt mtrxSkipValueMask);
     void UniformParityRZ(bitCapInt mask, real1_f angle);
-    void CUniformParityRZ(const std::vector<bitLenInt>& controls, bitCapInt mask, real1_f angle);
+    void CUniformParityRZ(const std::vector<bitLenInt>& controls, bitCapInt mask,
+                          real1_f angle);
 
     /* Operations that have an improved implementation. */
     using QEngine::X;
@@ -374,9 +382,11 @@ public:
     using QEngine::Z;
     void Z(bitLenInt target);
     using QEngine::Invert;
-    void Invert(complex topRight, complex bottomLeft, bitLenInt qubitIndex);
+    void Invert(const complex& topRight, const complex& bottomLeft,
+                bitLenInt qubitIndex);
     using QEngine::Phase;
-    void Phase(complex topLeft, complex bottomRight, bitLenInt qubitIndex);
+    void Phase(const complex& topLeft, const complex& bottomRight,
+               bitLenInt qubitIndex);
     void XMask(bitCapInt mask);
     void PhaseParity(real1_f radians, bitCapInt mask);
 
@@ -384,8 +394,7 @@ public:
     bitLenInt Compose(QEngineOCLPtr toCopy);
     bitLenInt Compose(QInterfacePtr toCopy) { return Compose(std::dynamic_pointer_cast<QEngineOCL>(toCopy)); }
     bitLenInt Compose(QEngineOCLPtr toCopy, bitLenInt start);
-    bitLenInt Compose(QInterfacePtr toCopy, bitLenInt start)
-    {
+    bitLenInt Compose(QInterfacePtr toCopy, bitLenInt start) {
         return Compose(std::dynamic_pointer_cast<QEngineOCL>(toCopy), start);
     }
     using QEngine::Decompose;
@@ -460,7 +469,7 @@ public:
     void GetProbs(real1* outputProbs);
     bitCapInt MAll();
     complex GetAmplitude(bitCapInt perm);
-    void SetAmplitude(bitCapInt perm, complex amp);
+    void SetAmplitude(bitCapInt perm, const complex& amp);
 
     real1_f SumSqrDiff(QInterfacePtr toCompare) { return SumSqrDiff(std::dynamic_pointer_cast<QEngineOCL>(toCompare)); }
     real1_f SumSqrDiff(QEngineOCLPtr toCompare);

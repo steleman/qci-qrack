@@ -36,100 +36,100 @@ typedef std::shared_ptr<QInterface> QInterfacePtr;
  */
 enum QInterfaceEngine {
 
-    /**
-     * Create a QEngineCPU leveraging only local CPU and memory resources.
-     */
-    QINTERFACE_CPU = 0,
+  /**
+   * Create a QEngineCPU leveraging only local CPU and memory resources.
+   */
+  QINTERFACE_CPU = 0,
 
-    /**
-     * Create a QEngineOCL, leveraging OpenCL hardware to increase the speed of certain calculations.
-     */
-    QINTERFACE_OPENCL,
+  /**
+   * Create a QEngineOCL, leveraging OpenCL hardware to increase the speed of certain calculations.
+   */
+  QINTERFACE_OPENCL,
 
-    /**
-     * Create a QEngineCUDA, leveraging CUDA hardware to increase the speed of certain calculations.
-     */
-    QINTERFACE_CUDA,
+  /**
+   * Create a QEngineCUDA, leveraging CUDA hardware to increase the speed of certain calculations.
+   */
+  QINTERFACE_CUDA,
 
-    /**
-     * Create a QHybrid, switching between QEngineCPU and QEngineOCL as efficient.
-     */
-    QINTERFACE_HYBRID,
+  /**
+   * Create a QHybrid, switching between QEngineCPU and QEngineOCL as efficient.
+   */
+  QINTERFACE_HYBRID,
 
-    /**
-     * Create a QBinaryDecisionTree, (CPU-based).
-     */
-    QINTERFACE_BDT,
+  /**
+   * Create a QBinaryDecisionTree, (CPU-based).
+   */
+  QINTERFACE_BDT,
 
-    /**
-     * Create a QBinaryDecisionTree, (CPU-based).
-     */
-    QINTERFACE_BDT_HYBRID,
+  /**
+   * Create a QBinaryDecisionTree, (CPU-based).
+   */
+  QINTERFACE_BDT_HYBRID,
 
-    /**
-     * Create a QStabilizer, limited to Clifford/Pauli operations, but efficient.
-     */
-    QINTERFACE_STABILIZER,
+  /**
+   * Create a QStabilizer, limited to Clifford/Pauli operations, but efficient.
+   */
+  QINTERFACE_STABILIZER,
 
-    /**
-     * Create a QStabilizerHybrid, switching between a QStabilizer and a QHybrid as efficient.
-     */
-    QINTERFACE_STABILIZER_HYBRID,
+  /**
+   * Create a QStabilizerHybrid, switching between a QStabilizer and a QHybrid as efficient.
+   */
+  QINTERFACE_STABILIZER_HYBRID,
 
-    /**
-     * Create a QPager, which breaks up the work of a QEngine into equally sized "pages."
-     */
-    QINTERFACE_QPAGER,
+  /**
+   * Create a QPager, which breaks up the work of a QEngine into equally sized "pages."
+   */
+  QINTERFACE_QPAGER,
 
-    /**
-     * Create a QUnit, which utilizes other QInterface classes to minimize the amount of work that's needed for any
-     * given operation based on the entanglement of the bits involved.
-     *
-     * This, combined with QINTERFACE_OPTIMAL, is the recommended object to use as a library
-     * consumer.
-     */
-    QINTERFACE_QUNIT,
+  /**
+   * Create a QUnit, which utilizes other QInterface classes to minimize the amount of work that's needed for any
+   * given operation based on the entanglement of the bits involved.
+   *
+   * This, combined with QINTERFACE_OPTIMAL, is the recommended object to use as a library
+   * consumer.
+   */
+  QINTERFACE_QUNIT,
 
-    /**
-     * Create a QUnitMulti, which distributes the explicitly separated "shards" of a QUnit across available OpenCL
-     * devices.
-     */
-    QINTERFACE_QUNIT_MULTI,
+  /**
+   * Create a QUnitMulti, which distributes the explicitly separated "shards" of a QUnit across available OpenCL
+   * devices.
+   */
+  QINTERFACE_QUNIT_MULTI,
 
-    /**
-     * Clifford-specialized QUnit
-     */
-    QINTERFACE_QUNIT_CLIFFORD,
+  /**
+   * Clifford-specialized QUnit
+   */
+  QINTERFACE_QUNIT_CLIFFORD,
 
-    /**
-     * Circuit-simplification layer, with (optional) recourse to cuTensorNetwork
-     */
-    QINTERFACE_TENSOR_NETWORK,
+  /**
+   * Circuit-simplification layer, with (optional) recourse to cuTensorNetwork
+   */
+  QINTERFACE_TENSOR_NETWORK,
 
 #if ENABLE_OPENCL
-    QINTERFACE_OPTIMAL_SCHROEDINGER = QINTERFACE_QPAGER,
+  QINTERFACE_OPTIMAL_SCHROEDINGER = QINTERFACE_QPAGER,
 
-    QINTERFACE_OPTIMAL_BASE = QINTERFACE_HYBRID,
+  QINTERFACE_OPTIMAL_BASE = QINTERFACE_HYBRID,
 #else
-    QINTERFACE_OPTIMAL_SCHROEDINGER = QINTERFACE_CPU,
+  QINTERFACE_OPTIMAL_SCHROEDINGER = QINTERFACE_CPU,
 
-    QINTERFACE_OPTIMAL_BASE = QINTERFACE_CPU,
+  QINTERFACE_OPTIMAL_BASE = QINTERFACE_CPU,
 #endif
 
-    QINTERFACE_OPTIMAL = QINTERFACE_QUNIT,
+  QINTERFACE_OPTIMAL = QINTERFACE_QUNIT,
 
-    QINTERFACE_OPTIMAL_MULTI = QINTERFACE_QUNIT_MULTI,
+  QINTERFACE_OPTIMAL_MULTI = QINTERFACE_QUNIT_MULTI,
 
-    QINTERFACE_MAX
+  QINTERFACE_MAX
 };
 
-/**
- * A "Qrack::QInterface" is an abstract interface exposing qubit permutation
- * state vector with methods to operate on it as by gates and register-like
- * instructions.
- *
- * See README.md for an overview of the algorithms Qrack employs.
- */
+  /**
+   * A "Qrack::QInterface" is an abstract interface exposing qubit permutation
+   * state vector with methods to operate on it as by gates and register-like
+   * instructions.
+   *
+   * See README.md for an overview of the algorithms Qrack employs.
+   */
 class QInterface : public ParallelFor {
 protected:
     bool doNormalize;
@@ -149,91 +149,80 @@ protected:
 
     static inline real1_f clampProb(real1_f toClamp)
     {
-        if (toClamp < ZERO_R1_F) {
-            toClamp = ZERO_R1_F;
-        }
-        if (toClamp > ONE_R1_F) {
-            toClamp = ONE_R1_F;
-        }
-        return toClamp;
+      if (toClamp < ZERO_R1_F) {
+        toClamp = ZERO_R1_F;
+      }
+      if (toClamp > ONE_R1_F) {
+        toClamp = ONE_R1_F;
+      }
+      return toClamp;
     }
 
     complex GetNonunitaryPhase()
     {
-        if (randGlobalPhase) {
-            real1_f angle = Rand() * 2 * (real1_f)PI_R1;
-            return complex((real1)cos(angle), (real1)sin(angle));
-        } else {
-            return ONE_CMPLX;
-        }
+      if (randGlobalPhase) {
+        real1_f angle = Rand() * 2 * (real1_f)PI_R1;
+        return complex((real1)cos(angle), (real1)sin(angle));
+      } else {
+        return ONE_CMPLX;
+      }
     }
 
     template <typename Fn> void MACWrapper(const std::vector<bitLenInt>& controls, Fn fn)
     {
-        bitCapInt xMask = ZERO_BCI;
-        for (size_t i = 0U; i < controls.size(); ++i) {
-            bi_or_ip(&xMask, pow2(controls[i]));
-        }
+      bitCapInt xMask = ZERO_BCI;
+      for (size_t i = 0U; i < controls.size(); ++i) {
+        bi_or_ip(&xMask, pow2(controls[i]));
+      }
 
-        XMask(xMask);
-        fn(controls);
-        XMask(xMask);
+      XMask(xMask);
+      fn(controls);
+      XMask(xMask);
     }
 
     virtual bitCapInt SampleClone(const std::vector<bitCapInt>& qPowers)
     {
-        QInterfacePtr clone = Clone();
+      QInterfacePtr clone = Clone();
 
-        const bitCapInt rawSample = clone->MAll();
-        bitCapInt sample = ZERO_BCI;
-        for (size_t i = 0U; i < qPowers.size(); ++i) {
-            if (bi_compare_0(rawSample & qPowers[i]) != 0) {
-                bi_or_ip(&sample, pow2(i));
-            }
+      const bitCapInt rawSample = clone->MAll();
+      bitCapInt sample = ZERO_BCI;
+      for (size_t i = 0U; i < qPowers.size(); ++i) {
+        if (bi_compare_0(rawSample & qPowers[i]) != 0) {
+          bi_or_ip(&sample, pow2(i));
         }
+      }
 
-        return sample;
+      return sample;
     }
 
-public:
-    QInterface(bitLenInt n, qrack_rand_gen_ptr rgp = nullptr, bool doNorm = false, bool useHardwareRNG = true,
-        bool randomGlobalPhase = true, real1_f norm_thresh = REAL1_EPSILON);
+  public:
+    QInterface(bitLenInt n, qrack_rand_gen_ptr rgp = nullptr,
+               bool doNorm = false, bool useHardwareRNG = true,
+               bool randomGlobalPhase = true, real1_f norm_thresh = REAL1_EPSILON);
 
     /** Default constructor, primarily for protected internal use */
     QInterface()
-        : doNormalize(false)
-        , randGlobalPhase(true)
-        , useRDRAND(true)
-        , qubitCount(0U)
-        , randomSeed(0)
-        , amplitudeFloor(REAL1_EPSILON)
-        , maxQPower(ONE_BCI)
-        , rand_distribution(0.0, 1.0)
-        , hardware_rand_generator(NULL)
-    {
-        // Intentionally left blank
-    }
+    : doNormalize(false), randGlobalPhase(true), useRDRAND(true),
+      qubitCount(0U), randomSeed(0), amplitudeFloor(REAL1_EPSILON),
+      maxQPower(ONE_BCI), rand_distribution(0.0, 1.0),
+      hardware_rand_generator(nullptr) { }
 
-    virtual ~QInterface()
-    {
-        // Virtual destructor for inheritance
-    }
+    virtual ~QInterface() = default;
 
     void SetRandomSeed(uint32_t seed)
     {
-        if (rand_generator != NULL) {
-            rand_generator->seed(seed);
-        }
+      if (rand_generator != NULL) {
+        rand_generator->seed(seed);
+      }
     }
 
-    virtual void SetQubitCount(bitLenInt qb)
-    {
-        qubitCount = qb;
-        maxQPower = pow2(qubitCount);
-    }
+    // Set the number of Qubits;
+    virtual void SetQubitCount(bitLenInt qb);
 
     /** Set the number of threads in parallel for loops, per component QEngine */
-    virtual void SetConcurrency(uint32_t threadsPerEngine) { SetConcurrencyLevel(threadsPerEngine); }
+    virtual void SetConcurrency(uint32_t threadsPerEngine) {
+      SetConcurrencyLevel(threadsPerEngine);
+    }
 
     /** Get the count of bits in this register */
     virtual bitLenInt GetQubitCount() { return qubitCount; }
@@ -246,11 +235,11 @@ public:
     /** Generate a random real number between 0 and 1 */
     real1_f Rand()
     {
-        if (hardware_rand_generator != NULL) {
-            return hardware_rand_generator->Next();
-        } else {
-            return rand_distribution(*rand_generator);
-        }
+      if (hardware_rand_generator != NULL) {
+        return hardware_rand_generator->Next();
+      } else {
+        return rand_distribution(*rand_generator);
+      }
     }
 
     /** Set an arbitrary pure quantum state representation
@@ -281,10 +270,11 @@ public:
      *
      * \warning PSEUDO-QUANTUM
      */
-    virtual void SetAmplitude(bitCapInt perm, complex amp) = 0;
+    virtual void SetAmplitude(bitCapInt perm, const complex& amp) = 0;
 
     /** Set to a specific permutation of all qubits */
-    virtual void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    virtual void SetPermutation(bitCapInt perm,
+                                const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     /**
      * Combine another QInterface with this one, after the last bit index of
@@ -448,100 +438,108 @@ public:
     /**
      * Apply an arbitrary single bit unitary transformation, with arbitrary control bits.
      */
-    virtual void MCMtrx(const std::vector<bitLenInt>& controls, const complex* mtrx, bitLenInt target) = 0;
+    virtual void MCMtrx(const std::vector<bitLenInt>& controls,
+                        const complex* mtrx, bitLenInt target) = 0;
 
     /**
      * Apply an arbitrary single bit unitary transformation, with arbitrary (anti-)control bits.
      */
-    virtual void MACMtrx(const std::vector<bitLenInt>& controls, const complex* mtrx, bitLenInt target)
-    {
-        if (IS_NORM_0(mtrx[1U]) && IS_NORM_0(mtrx[2U])) {
-            MACPhase(controls, mtrx[0U], mtrx[3U], target);
-        } else if (IS_NORM_0(mtrx[0U]) && IS_NORM_0(mtrx[3U])) {
-            MACInvert(controls, mtrx[1U], mtrx[2U], target);
-        } else {
-            MACWrapper(controls, [this, mtrx, target](const std::vector<bitLenInt>& lc) { MCMtrx(lc, mtrx, target); });
-        }
+    virtual void MACMtrx(const std::vector<bitLenInt>& controls,
+                         const complex* mtrx, bitLenInt target) {
+      if (IS_NORM_0(mtrx[1U]) && IS_NORM_0(mtrx[2U])) {
+        MACPhase(controls, mtrx[0U], mtrx[3U], target);
+      } else if (IS_NORM_0(mtrx[0U]) && IS_NORM_0(mtrx[3U])) {
+        MACInvert(controls, mtrx[1U], mtrx[2U], target);
+      } else {
+        MACWrapper(controls, [this, mtrx, target]
+                   (const std::vector<bitLenInt>& lc) { MCMtrx(lc, mtrx, target);
+                   });
+      }
     }
 
     /**
      * Apply an arbitrary single bit unitary transformation, with arbitrary control bits, with arbitary control
      * permutation.
      */
-    virtual void UCMtrx(
-        const std::vector<bitLenInt>& controls, const complex* mtrx, bitLenInt target, bitCapInt controlPerm);
+    virtual void UCMtrx(const std::vector<bitLenInt>& controls,
+                        const complex* mtrx, bitLenInt target,
+                        bitCapInt controlPerm);
 
     /**
      * Apply a single bit transformation that only effects phase.
      */
-    virtual void Phase(const complex topLeft, const complex bottomRight, bitLenInt qubitIndex)
-    {
-        if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) && IS_NORM_0(topLeft - bottomRight)) {
-            return;
-        }
+    virtual void Phase(const complex& topLeft, const complex& bottomRight,
+                       bitLenInt qubitIndex) {
+      if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) &&
+          IS_NORM_0(topLeft - bottomRight)) {
+        return;
+      }
 
-        const complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
-        Mtrx(mtrx, qubitIndex);
+      complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
+      Mtrx(mtrx, qubitIndex);
     }
 
     /**
      * Apply a single bit transformation that reverses bit probability and might effect phase.
      */
-    virtual void Invert(const complex topRight, const complex bottomLeft, bitLenInt qubitIndex)
-    {
-        const complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
-        Mtrx(mtrx, qubitIndex);
+    virtual void Invert(const complex& topRight, const complex& bottomLeft,
+                        bitLenInt qubitIndex) {
+      complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
+      Mtrx(mtrx, qubitIndex);
     }
 
     /**
      * Apply a single bit transformation that only effects phase, with arbitrary control bits.
      */
-    virtual void MCPhase(const std::vector<bitLenInt>& controls, complex topLeft, complex bottomRight, bitLenInt target)
-    {
-        if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
-            return;
-        }
+    virtual void MCPhase(const std::vector<bitLenInt>& controls,
+                         const complex& topLeft, const complex& bottomRight,
+                         bitLenInt target) {
+      if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
+        return;
+      }
 
-        const complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
-        MCMtrx(controls, mtrx, target);
+      complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
+      MCMtrx(controls, mtrx, target);
     }
 
     /**
      * Apply a single bit transformation that reverses bit probability and might effect phase, with arbitrary control
      * bits.
      */
-    virtual void MCInvert(
-        const std::vector<bitLenInt>& controls, complex topRight, complex bottomLeft, bitLenInt target)
-    {
-        const complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
-        MCMtrx(controls, mtrx, target);
+    virtual void MCInvert(const std::vector<bitLenInt>& controls,
+                          const complex& topRight, const complex& bottomLeft,
+                          bitLenInt target) {
+      complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
+      MCMtrx(controls, mtrx, target);
     }
 
     /**
      * Apply a single bit transformation that only effects phase, with arbitrary (anti-)control bits.
      */
-    virtual void MACPhase(
-        const std::vector<bitLenInt>& controls, complex topLeft, complex bottomRight, bitLenInt target)
-    {
-        if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
-            return;
-        }
+    virtual void MACPhase(const std::vector<bitLenInt>& controls,
+                          const complex& topLeft, const complex& bottomRight,
+                          bitLenInt target) {
+      if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
+        return;
+      }
 
-        MACWrapper(controls, [this, topLeft, bottomRight, target](const std::vector<bitLenInt>& lc) {
-            MCPhase(lc, topLeft, bottomRight, target);
-        });
+      MACWrapper(controls, [this, topLeft, bottomRight, target]
+                 (const std::vector<bitLenInt>& lc) { MCPhase(lc, topLeft,
+                                                              bottomRight, target);
+                 });
     }
 
     /**
      * Apply a single bit transformation that reverses bit probability and might effect phase, with arbitrary
      * (anti-)control bits.
      */
-    virtual void MACInvert(
-        const std::vector<bitLenInt>& controls, complex topRight, complex bottomLeft, bitLenInt target)
-    {
-        MACWrapper(controls, [this, topRight, bottomLeft, target](const std::vector<bitLenInt>& lc) {
-            MCInvert(lc, topRight, bottomLeft, target);
-        });
+    virtual void MACInvert(const std::vector<bitLenInt>& controls,
+                           const complex& topRight, const complex& bottomLeft,
+                           bitLenInt target) {
+      MACWrapper(controls, [this, topRight, bottomLeft, target]
+                 (const std::vector<bitLenInt>& lc) {
+                 MCInvert(lc, topRight, bottomLeft, target);
+                 });
     }
 
     /**
@@ -549,14 +547,14 @@ public:
      * permutation.
      */
     virtual void UCPhase(
-        const std::vector<bitLenInt>& controls, complex topLeft, complex bottomRight, bitLenInt target, bitCapInt perm)
+      const std::vector<bitLenInt>& controls, complex topLeft, complex bottomRight, bitLenInt target, bitCapInt perm)
     {
-        if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
-            return;
-        }
+      if (IS_NORM_0(ONE_CMPLX - topLeft) && IS_NORM_0(ONE_CMPLX - bottomRight)) {
+        return;
+      }
 
-        const complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
-        UCMtrx(controls, mtrx, target, perm);
+      const complex mtrx[4U]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
+      UCMtrx(controls, mtrx, target, perm);
     }
 
     /**
@@ -564,10 +562,10 @@ public:
      * bits, with arbitrary control permutation.
      */
     virtual void UCInvert(
-        const std::vector<bitLenInt>& controls, complex topRight, complex bottomLeft, bitLenInt target, bitCapInt perm)
+      const std::vector<bitLenInt>& controls, complex topRight, complex bottomLeft, bitLenInt target, bitCapInt perm)
     {
-        const complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
-        UCMtrx(controls, mtrx, target, perm);
+      const complex mtrx[4U]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
+      UCMtrx(controls, mtrx, target, perm);
     }
 
     /**
@@ -585,12 +583,12 @@ public:
      */
 
     virtual void UniformlyControlledSingleBit(
-        const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, const complex* mtrxs)
+      const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, const complex* mtrxs)
     {
-        UniformlyControlledSingleBit(controls, qubitIndex, mtrxs, std::vector<bitCapInt>(), ZERO_BCI);
+      UniformlyControlledSingleBit(controls, qubitIndex, mtrxs, std::vector<bitCapInt>(), ZERO_BCI);
     }
     virtual void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls, bitLenInt qubitIndex,
-        const complex* mtrxs, const std::vector<bitCapInt>& mtrxSkipPowers, bitCapInt mtrxSkipValueMask);
+                                              const complex* mtrxs, const std::vector<bitCapInt>& mtrxSkipPowers, bitCapInt mtrxSkipValueMask);
 
     /**
      * To define a Hamiltonian, give a vector of controlled single bit gates ("HamiltonianOp" instances) that are
@@ -646,8 +644,8 @@ public:
      */
     virtual void CCNOT(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MCInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MCInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
     }
 
     /**
@@ -657,8 +655,8 @@ public:
      */
     virtual void AntiCCNOT(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MACInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MACInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
     }
 
     /**
@@ -668,8 +666,8 @@ public:
      */
     virtual void CNOT(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MCInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
     }
 
     /**
@@ -679,8 +677,8 @@ public:
      */
     virtual void AntiCNOT(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MACInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MACInvert(controls, ONE_CMPLX, ONE_CMPLX, target);
     }
 
     /**
@@ -691,8 +689,8 @@ public:
      */
     virtual void CY(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCInvert(controls, -I_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MCInvert(controls, -I_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -702,8 +700,8 @@ public:
      */
     virtual void AntiCY(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MACInvert(controls, -I_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MACInvert(controls, -I_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -714,8 +712,8 @@ public:
      */
     virtual void CCY(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MCInvert(controls, -I_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MCInvert(controls, -I_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -725,8 +723,8 @@ public:
      */
     virtual void AntiCCY(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MACInvert(controls, -I_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MACInvert(controls, -I_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -737,8 +735,8 @@ public:
      */
     virtual void CZ(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
     }
 
     /**
@@ -748,8 +746,8 @@ public:
      */
     virtual void AntiCZ(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MACPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MACPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
     }
 
     /**
@@ -760,8 +758,8 @@ public:
      */
     virtual void CCZ(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MCPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MCPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
     }
 
     /**
@@ -771,8 +769,8 @@ public:
      */
     virtual void AntiCCZ(bitLenInt control1, bitLenInt control2, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control1, control2 };
-        MACPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control1, control2 };
+      MACPhase(controls, ONE_CMPLX, -ONE_CMPLX, target);
     }
 
     /**
@@ -797,7 +795,7 @@ public:
      */
     virtual void IU2(bitLenInt target, real1_f phi, real1_f lambda)
     {
-        U(target, (real1_f)(M_PI / 2), (real1_f)(-lambda - PI_R1), (real1_f)(-phi + PI_R1));
+      U(target, (real1_f)(M_PI / 2), (real1_f)(-lambda - PI_R1), (real1_f)(-phi + PI_R1));
     }
 
     /**
@@ -853,7 +851,7 @@ public:
      * values).
      */
     virtual void CU(
-        const std::vector<bitLenInt>& controls, bitLenInt target, real1_f theta, real1_f phi, real1_f lambda);
+      const std::vector<bitLenInt>& controls, bitLenInt target, real1_f theta, real1_f phi, real1_f lambda);
 
     /**
      * (Anti-)Controlled general unitary gate
@@ -863,7 +861,7 @@ public:
      * expectation values).
      */
     virtual void AntiCU(
-        const std::vector<bitLenInt>& controls, bitLenInt target, real1_f theta, real1_f phi, real1_f lambda);
+      const std::vector<bitLenInt>& controls, bitLenInt target, real1_f theta, real1_f phi, real1_f lambda);
 
     /**
      * Hadamard gate
@@ -872,10 +870,10 @@ public:
      */
     virtual void H(bitLenInt qubit)
     {
-        QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -885,14 +883,14 @@ public:
      */
     virtual void SqrtH(bitLenInt qubit)
     {
-        QRACK_CONST complex m00 =
-            complex((real1)((ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)), (real1)((-ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)));
-        QRACK_CONST complex m01 = complex((real1)(SQRT1_2_R1 / 2), (real1)(-SQRT1_2_R1 / 2));
-        QRACK_CONST complex m10 = m01;
-        QRACK_CONST complex m11 =
-            complex((real1)((-ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)), (real1)((ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)));
-        QRACK_CONST complex mtrx[4]{ m00, m01, m10, m11 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex m00 =
+        complex((real1)((ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)), (real1)((-ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)));
+      QRACK_CONST complex m01 = complex((real1)(SQRT1_2_R1 / 2), (real1)(-SQRT1_2_R1 / 2));
+      QRACK_CONST complex m10 = m01;
+      QRACK_CONST complex m11 =
+        complex((real1)((-ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)), (real1)((ONE_R1 + SQRT2_R1) / (2 * SQRT2_R1)));
+      QRACK_CONST complex mtrx[4]{ m00, m01, m10, m11 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -902,11 +900,11 @@ public:
      */
     virtual void SH(bitLenInt qubit)
     {
-        QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex C_I_SQRT1_2 = complex(ZERO_R1, SQRT1_2_R1);
-        QRACK_CONST complex C_I_SQRT1_2_NEG = complex(ZERO_R1, -SQRT1_2_R1);
-        QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_I_SQRT1_2, C_I_SQRT1_2_NEG };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex C_I_SQRT1_2 = complex(ZERO_R1, SQRT1_2_R1);
+      QRACK_CONST complex C_I_SQRT1_2_NEG = complex(ZERO_R1, -SQRT1_2_R1);
+      QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_I_SQRT1_2, C_I_SQRT1_2_NEG };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -916,11 +914,11 @@ public:
      */
     virtual void HIS(bitLenInt qubit)
     {
-        QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex C_I_SQRT1_2 = complex(ZERO_R1, SQRT1_2_R1);
-        QRACK_CONST complex C_I_SQRT1_2_NEG = complex(ZERO_R1, -SQRT1_2_R1);
-        QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_I_SQRT1_2_NEG, C_SQRT1_2, C_I_SQRT1_2 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex C_I_SQRT1_2 = complex(ZERO_R1, SQRT1_2_R1);
+      QRACK_CONST complex C_I_SQRT1_2_NEG = complex(ZERO_R1, -SQRT1_2_R1);
+      QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_I_SQRT1_2_NEG, C_SQRT1_2, C_I_SQRT1_2 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1014,11 +1012,11 @@ public:
      */
     virtual void PhaseRootN(bitLenInt n, bitLenInt qubit)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        Phase(ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), qubit);
+      Phase(ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), qubit);
     }
 
     /**
@@ -1028,11 +1026,11 @@ public:
      */
     virtual void IPhaseRootN(bitLenInt n, bitLenInt qubit)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        Phase(ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), qubit);
+      Phase(ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), qubit);
     }
 
     /**
@@ -1099,10 +1097,10 @@ public:
      */
     virtual void SqrtX(bitLenInt qubit)
     {
-        QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ ONE_PLUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_PLUS_I_DIV_2 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ ONE_PLUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_PLUS_I_DIV_2 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1113,10 +1111,10 @@ public:
      */
     virtual void ISqrtX(bitLenInt qubit)
     {
-        QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ ONE_MINUS_I_DIV_2, ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2, ONE_MINUS_I_DIV_2 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ ONE_MINUS_I_DIV_2, ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2, ONE_MINUS_I_DIV_2 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1128,10 +1126,10 @@ public:
      */
     virtual void SqrtY(bitLenInt qubit)
     {
-        QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex ONE_PLUS_I_DIV_2_NEG = complex((real1)(-ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2_NEG, ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex ONE_PLUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex ONE_PLUS_I_DIV_2_NEG = complex((real1)(-ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2_NEG, ONE_PLUS_I_DIV_2, ONE_PLUS_I_DIV_2 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1143,10 +1141,10 @@ public:
      */
     virtual void ISqrtY(bitLenInt qubit)
     {
-        QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex ONE_MINUS_I_DIV_2_NEG = complex((real1)(-ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2_NEG, ONE_MINUS_I_DIV_2 };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex ONE_MINUS_I_DIV_2 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex ONE_MINUS_I_DIV_2_NEG = complex((real1)(-ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2, ONE_MINUS_I_DIV_2_NEG, ONE_MINUS_I_DIV_2 };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1156,11 +1154,11 @@ public:
      */
     virtual void SqrtW(bitLenInt qubit)
     {
-        QRACK_CONST complex diag = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex m01 = complex((real1)(-ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex m10 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ diag, m01, m10, diag };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex diag = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex m01 = complex((real1)(-ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex m10 = complex((real1)(ONE_R1 / 2), (real1)(-ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ diag, m01, m10, diag };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1170,11 +1168,11 @@ public:
      */
     virtual void ISqrtW(bitLenInt qubit)
     {
-        QRACK_CONST complex diag = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex m01 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex m10 = complex((real1)(-ONE_R1 / 2), (real1)(ONE_R1 / 2));
-        QRACK_CONST complex mtrx[4]{ diag, m01, m10, diag };
-        Mtrx(mtrx, qubit);
+      QRACK_CONST complex diag = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex m01 = complex((real1)(ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex m10 = complex((real1)(-ONE_R1 / 2), (real1)(ONE_R1 / 2));
+      QRACK_CONST complex mtrx[4]{ diag, m01, m10, diag };
+      Mtrx(mtrx, qubit);
     }
 
     /**
@@ -1185,11 +1183,11 @@ public:
      */
     virtual void CH(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
-        MCMtrx(controls, mtrx, target);
+      const std::vector<bitLenInt> controls{ control };
+      QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
+      MCMtrx(controls, mtrx, target);
     }
 
     /**
@@ -1200,11 +1198,11 @@ public:
      */
     virtual void AntiCH(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
-        QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
-        MACMtrx(controls, mtrx, target);
+      const std::vector<bitLenInt> controls{ control };
+      QRACK_CONST complex C_SQRT1_2 = complex(SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex C_SQRT1_2_NEG = complex(-SQRT1_2_R1, ZERO_R1);
+      QRACK_CONST complex mtrx[4]{ C_SQRT1_2, C_SQRT1_2, C_SQRT1_2, C_SQRT1_2_NEG };
+      MACMtrx(controls, mtrx, target);
     }
 
     /**
@@ -1215,8 +1213,8 @@ public:
      */
     virtual void CS(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -1227,8 +1225,8 @@ public:
      */
     virtual void AntiCS(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MACPhase(controls, ONE_CMPLX, I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MACPhase(controls, ONE_CMPLX, I_CMPLX, target);
     }
 
     /**
@@ -1239,8 +1237,8 @@ public:
      */
     virtual void CIS(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, -I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, -I_CMPLX, target);
     }
 
     /**
@@ -1251,8 +1249,8 @@ public:
      */
     virtual void AntiCIS(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MACPhase(controls, ONE_CMPLX, -I_CMPLX, target);
+      const std::vector<bitLenInt> controls{ control };
+      MACPhase(controls, ONE_CMPLX, -I_CMPLX, target);
     }
 
     /**
@@ -1263,8 +1261,8 @@ public:
      */
     virtual void CT(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, complex(SQRT1_2_R1, SQRT1_2_R1), target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, complex(SQRT1_2_R1, SQRT1_2_R1), target);
     }
 
     /**
@@ -1275,8 +1273,8 @@ public:
      */
     virtual void CIT(bitLenInt control, bitLenInt target)
     {
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, complex(SQRT1_2_R1, -SQRT1_2_R1), target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, complex(SQRT1_2_R1, -SQRT1_2_R1), target);
     }
 
     /**
@@ -1287,12 +1285,12 @@ public:
      */
     virtual void CPhaseRootN(bitLenInt n, bitLenInt control, bitLenInt target)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), target);
     }
 
     /**
@@ -1303,12 +1301,12 @@ public:
      */
     virtual void AntiCPhaseRootN(bitLenInt n, bitLenInt control, bitLenInt target)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        const std::vector<bitLenInt> controls{ control };
-        MACPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), target);
+      const std::vector<bitLenInt> controls{ control };
+      MACPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(ONE_R1 / pow2Ocl(n - 1U))), target);
     }
 
     /**
@@ -1319,12 +1317,12 @@ public:
      */
     virtual void CIPhaseRootN(bitLenInt n, bitLenInt control, bitLenInt target)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        const std::vector<bitLenInt> controls{ control };
-        MCPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), target);
+      const std::vector<bitLenInt> controls{ control };
+      MCPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), target);
     }
 
     /**
@@ -1335,12 +1333,12 @@ public:
      */
     virtual void AntiCIPhaseRootN(bitLenInt n, bitLenInt control, bitLenInt target)
     {
-        if (n == 0) {
-            return;
-        }
+      if (n == 0) {
+        return;
+      }
 
-        const std::vector<bitLenInt> controls{ control };
-        MACPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), target);
+      const std::vector<bitLenInt> controls{ control };
+      MACPhase(controls, ONE_CMPLX, pow(-ONE_CMPLX, (real1)(-ONE_R1 / pow2Ocl(n - 1U))), target);
     }
 
     /** @} */
@@ -1454,7 +1452,7 @@ public:
      * bits, there are therefore 2^k real components in "angles."
      */
     virtual void UniformlyControlledRY(
-        const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, real1 const* angles);
+      const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, real1 const* angles);
 
     /**
      * Apply a "uniformly controlled" rotation of a bit around the Pauli Z axis. (See
@@ -1467,7 +1465,7 @@ public:
      * bits, there are therefore 2^k real components in "angles."
      */
     virtual void UniformlyControlledRZ(
-        const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, real1 const* angles);
+      const std::vector<bitLenInt>& controls, bitLenInt qubitIndex, real1 const* angles);
 
     /**
      * Phase shift gate
@@ -1542,7 +1540,7 @@ public:
      * Applies \f$ e^{-i*Op} \f$, where "Op" is a 2x2 matrix, (with controls on the application of the gate).
      */
     virtual void Exp(
-        const std::vector<bitLenInt>& controls, bitLenInt qubit, const complex* matrix2x2, bool antiCtrled = false);
+      const std::vector<bitLenInt>& controls, bitLenInt qubit, const complex* matrix2x2, bool antiCtrled = false);
 
     /**
      * Dyadic fraction (identity) exponentiation gate
@@ -2100,8 +2098,8 @@ public:
     /** Subtract classical integer (without sign) */
     virtual void DEC(bitCapInt toSub, bitLenInt start, bitLenInt length)
     {
-        const bitCapInt invToSub = pow2(length) - toSub;
-        INC(invToSub, start, length);
+      const bitCapInt invToSub = pow2(length) - toSub;
+      INC(invToSub, start, length);
     }
 
     /** Common driver method behind INCC and DECC */
@@ -2110,27 +2108,27 @@ public:
     /** Add integer (without sign, with carry) */
     virtual void INCC(bitCapInt toAdd, bitLenInt start, bitLenInt length, bitLenInt carryIndex)
     {
-        const bool hasCarry = M(carryIndex);
-        if (hasCarry) {
-            X(carryIndex);
-            bi_increment(&toAdd, 1U);
-        }
+      const bool hasCarry = M(carryIndex);
+      if (hasCarry) {
+        X(carryIndex);
+        bi_increment(&toAdd, 1U);
+      }
 
-        INCDECC(toAdd, start, length, carryIndex);
+      INCDECC(toAdd, start, length, carryIndex);
     }
 
     /** Subtract classical integer (without sign, with carry) */
     virtual void DECC(bitCapInt toSub, bitLenInt start, bitLenInt length, bitLenInt carryIndex)
     {
-        const bool hasCarry = M(carryIndex);
-        if (hasCarry) {
-            X(carryIndex);
-        } else {
-            bi_increment(&toSub, 1U);
-        }
+      const bool hasCarry = M(carryIndex);
+      if (hasCarry) {
+        X(carryIndex);
+      } else {
+        bi_increment(&toSub, 1U);
+      }
 
-        const bitCapInt invToSub = pow2(length) - toSub;
-        INCDECC(invToSub, start, length, carryIndex);
+      const bitCapInt invToSub = pow2(length) - toSub;
+      INCDECC(invToSub, start, length, carryIndex);
     }
 
     /** Add integer (without sign, with controls) */
@@ -2139,26 +2137,26 @@ public:
     /** Subtract classical integer (without sign, with controls) */
     virtual void CDEC(bitCapInt toSub, bitLenInt inOutStart, bitLenInt length, const std::vector<bitLenInt>& controls)
     {
-        const bitCapInt invToSub = pow2(length) - toSub;
-        CINC(invToSub, inOutStart, length, controls);
+      const bitCapInt invToSub = pow2(length) - toSub;
+      CINC(invToSub, inOutStart, length, controls);
     }
 
     /** Add a classical integer to the register, with sign and without carry. */
     virtual void INCS(bitCapInt toAdd, bitLenInt start, bitLenInt length, bitLenInt overflowIndex)
     {
-        const bitCapInt signMask = pow2(length - 1U);
-        INC(signMask, start, length);
-        INCDECC(toAdd & ~signMask, start, length, overflowIndex);
-        if (bi_compare_0(toAdd & signMask) == 0) {
-            DEC(signMask, start, length);
-        }
+      const bitCapInt signMask = pow2(length - 1U);
+      INC(signMask, start, length);
+      INCDECC(toAdd & ~signMask, start, length, overflowIndex);
+      if (bi_compare_0(toAdd & signMask) == 0) {
+        DEC(signMask, start, length);
+      }
     }
 
     /** Subtract a classical integer from the register, with sign and without carry. */
     virtual void DECS(bitCapInt toSub, bitLenInt start, bitLenInt length, bitLenInt overflowIndex)
     {
-        const bitCapInt invToSub = pow2(length) - toSub;
-        INCS(invToSub, start, length, overflowIndex);
+      const bitCapInt invToSub = pow2(length) - toSub;
+      INCS(invToSub, start, length, overflowIndex);
     }
 
     /** Multiplication modulo N by integer, (out of place) */
@@ -2169,11 +2167,11 @@ public:
 
     /** Controlled multiplication modulo N by integer, (out of place) */
     virtual void CMULModNOut(bitCapInt toMul, bitCapInt modN, bitLenInt inStart, bitLenInt outStart, bitLenInt length,
-        const std::vector<bitLenInt>& controls);
+                             const std::vector<bitLenInt>& controls);
 
     /** Inverse of controlled multiplication modulo N by integer, (out of place) */
     virtual void CIMULModNOut(bitCapInt toMul, bitCapInt modN, bitLenInt inStart, bitLenInt outStart, bitLenInt length,
-        const std::vector<bitLenInt>& controls);
+                              const std::vector<bitLenInt>& controls);
 
     /**
      * Quantum analog of classical "Full Adder" gate
@@ -2182,14 +2180,14 @@ public:
      */
     virtual void FullAdd(bitLenInt inputBit1, bitLenInt inputBit2, bitLenInt carryInSumOut, bitLenInt carryOut)
     {
-        // See https://quantumcomputing.stackexchange.com/questions/1654/how-do-i-add-11-using-a-quantum-computer
+      // See https://quantumcomputing.stackexchange.com/questions/1654/how-do-i-add-11-using-a-quantum-computer
 
-        // Assume outputBit is in 0 state.
-        CCNOT(inputBit1, inputBit2, carryOut);
-        CNOT(inputBit1, inputBit2);
-        CCNOT(inputBit2, carryInSumOut, carryOut);
-        CNOT(inputBit2, carryInSumOut);
-        CNOT(inputBit1, inputBit2);
+      // Assume outputBit is in 0 state.
+      CCNOT(inputBit1, inputBit2, carryOut);
+      CNOT(inputBit1, inputBit2);
+      CCNOT(inputBit2, carryInSumOut, carryOut);
+      CNOT(inputBit2, carryInSumOut);
+      CNOT(inputBit1, inputBit2);
     }
 
     /**
@@ -2199,16 +2197,16 @@ public:
      */
     virtual void IFullAdd(bitLenInt inputBit1, bitLenInt inputBit2, bitLenInt carryInSumOut, bitLenInt carryOut)
     {
-        // See https://quantumcomputing.stackexchange.com/questions/1654/how-do-i-add-11-using-a-quantum-computer
-        // Quantum computing is reversible! Simply perform the inverse operations in reverse order!
-        // (CNOT and CCNOT are self-inverse.)
+      // See https://quantumcomputing.stackexchange.com/questions/1654/how-do-i-add-11-using-a-quantum-computer
+      // Quantum computing is reversible! Simply perform the inverse operations in reverse order!
+      // (CNOT and CCNOT are self-inverse.)
 
-        // Assume outputBit is in 0 state.
-        CNOT(inputBit1, inputBit2);
-        CNOT(inputBit2, carryInSumOut);
-        CCNOT(inputBit2, carryInSumOut, carryOut);
-        CNOT(inputBit1, inputBit2);
-        CCNOT(inputBit1, inputBit2, carryOut);
+      // Assume outputBit is in 0 state.
+      CNOT(inputBit1, inputBit2);
+      CNOT(inputBit2, carryInSumOut);
+      CCNOT(inputBit2, carryInSumOut, carryOut);
+      CNOT(inputBit1, inputBit2);
+      CCNOT(inputBit1, inputBit2, carryOut);
     }
 
     /**
@@ -2217,7 +2215,7 @@ public:
      * (Assumes the outputBit is in the 0 state)
      */
     virtual void CFullAdd(const std::vector<bitLenInt>& controls, bitLenInt inputBit1, bitLenInt inputBit2,
-        bitLenInt carryInSumOut, bitLenInt carryOut);
+                          bitLenInt carryInSumOut, bitLenInt carryOut);
 
     /**
      * Inverse of CFullAdd
@@ -2225,7 +2223,7 @@ public:
      * (Can be thought of as "subtraction," but with a register convention that the same inputs invert CFullAdd.)
      */
     virtual void CIFullAdd(const std::vector<bitLenInt>& controls, bitLenInt inputBit1, bitLenInt inputBit2,
-        bitLenInt carryInSumOut, bitLenInt carryOut);
+                           bitLenInt carryInSumOut, bitLenInt carryOut);
 
     /**
      * Add a quantum integer to a quantum integer, with carry
@@ -2247,7 +2245,7 @@ public:
      * (Assumes the output register is in the 0 state)
      */
     virtual void CADC(const std::vector<bitLenInt>& controls, bitLenInt input1, bitLenInt input2, bitLenInt output,
-        bitLenInt length, bitLenInt carry);
+                      bitLenInt length, bitLenInt carry);
 
     /**
      * Inverse of CADC
@@ -2255,7 +2253,7 @@ public:
      * (Can be thought of as "subtraction," but with a register convention that the same inputs invert CADC.)
      */
     virtual void CIADC(const std::vector<bitLenInt>& controls, bitLenInt input1, bitLenInt input2, bitLenInt output,
-        bitLenInt length, bitLenInt carry);
+                       bitLenInt length, bitLenInt carry);
 
     /** @} */
 
@@ -2318,7 +2316,7 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual bitCapInt ForceMReg(
-        bitLenInt start, bitLenInt length, bitCapInt result, bool doForce = true, bool doApply = true);
+      bitLenInt start, bitLenInt length, bitCapInt result, bool doForce = true, bool doApply = true);
 
     /** Measure bits with indices in array, and return a mask of the results */
     virtual bitCapInt M(const std::vector<bitLenInt>& bits) { return ForceM(bits, std::vector<bool>()); }
@@ -2347,11 +2345,11 @@ public:
     /** Reverse all of the bits in a sequence. */
     virtual void Reverse(bitLenInt first, bitLenInt last)
     {
-        while ((last > 0U) && (first < (last - 1U))) {
-            --last;
-            Swap(first, last);
-            ++first;
-        }
+      while ((last > 0U) && (first < (last - 1U))) {
+        --last;
+        Swap(first, last);
+        ++first;
+      }
     }
 
     /** @} */
@@ -2375,11 +2373,11 @@ public:
      */
     virtual real1_f CProb(bitLenInt control, bitLenInt target)
     {
-        AntiCNOT(control, target);
-        const real1_f prob = Prob(target);
-        AntiCNOT(control, target);
+      AntiCNOT(control, target);
+      const real1_f prob = Prob(target);
+      AntiCNOT(control, target);
 
-        return prob;
+      return prob;
     }
     /**
      * Direct measure of bit probability to be in |1> state, if control bit is |0>.
@@ -2388,11 +2386,11 @@ public:
      */
     virtual real1_f ACProb(bitLenInt control, bitLenInt target)
     {
-        CNOT(control, target);
-        const real1_f prob = Prob(target);
-        CNOT(control, target);
+      CNOT(control, target);
+      const real1_f prob = Prob(target);
+      CNOT(control, target);
 
-        return prob;
+      return prob;
     }
 
     /**
@@ -2400,7 +2398,7 @@ public:
      *
      * \warning PSEUDO-QUANTUM
      */
-    virtual real1_f ProbAll(bitCapInt fullRegister) { return clampProb((real1_f)norm(GetAmplitude(fullRegister))); }
+    virtual real1_f ProbAll(bitCapInt fullRegister);
 
     /**
      * Direct measure of register permutation probability
@@ -2450,14 +2448,14 @@ public:
      */
     virtual real1_f ExpectationBitsAll(const std::vector<bitLenInt>& bits, bitCapInt offset = ZERO_BCI)
     {
-        std::vector<bitCapInt> perms;
-        perms.reserve(bits.size() << 1U);
-        for (size_t i = 0U; i < bits.size(); ++i) {
-            perms.push_back(ZERO_BCI);
-            perms.push_back(pow2(i));
-        }
+      std::vector<bitCapInt> perms;
+      perms.reserve(bits.size() << 1U);
+      for (size_t i = 0U; i < bits.size(); ++i) {
+        perms.push_back(ZERO_BCI);
+        perms.push_back(pow2(i));
+      }
 
-        return ExpectationBitsFactorized(bits, perms, offset);
+      return ExpectationBitsFactorized(bits, perms, offset);
     }
 
     /**
@@ -2469,7 +2467,7 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual real1_f ExpectationBitsFactorized(
-        const std::vector<bitLenInt>& bits, const std::vector<bitCapInt>& perms, bitCapInt offset = ZERO_BCI);
+      const std::vector<bitLenInt>& bits, const std::vector<bitCapInt>& perms, bitCapInt offset = ZERO_BCI);
 
     /**
      * Get (reduced density matrix) expectation value of bits, given an array of qubit weights
@@ -2481,9 +2479,9 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual real1_f ExpectationBitsFactorizedRdm(bool roundRz, const std::vector<bitLenInt>& bits,
-        const std::vector<bitCapInt>& perms, bitCapInt offset = ZERO_BCI)
+                                                 const std::vector<bitCapInt>& perms, bitCapInt offset = ZERO_BCI)
     {
-        return ExpectationBitsFactorized(bits, perms, offset);
+      return ExpectationBitsFactorized(bits, perms, offset);
     }
 
     /**
@@ -2495,7 +2493,7 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual real1_f ExpectationFloatsFactorized(
-        const std::vector<bitLenInt>& bits, const std::vector<real1_f>& weights);
+      const std::vector<bitLenInt>& bits, const std::vector<real1_f>& weights);
 
     /**
      * Get (reduced density matrix) expectation value of bits, given a (floating-point) array of qubit weights
@@ -2507,9 +2505,9 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual real1_f ExpectationFloatsFactorizedRdm(
-        bool roundRz, const std::vector<bitLenInt>& bits, const std::vector<real1_f>& weights)
+      bool roundRz, const std::vector<bitLenInt>& bits, const std::vector<real1_f>& weights)
     {
-        return ExpectationFloatsFactorized(bits, weights);
+      return ExpectationFloatsFactorized(bits, weights);
     }
 
     /**
@@ -2524,7 +2522,8 @@ public:
      *
      * \warning PSEUDO-QUANTUM
      */
-    virtual real1_f ProbAllRdm(bool roundRz, bitCapInt fullRegister) { return ProbAll(fullRegister); }
+    virtual real1_f ProbAllRdm(bool roundRz, bitCapInt fullRegister);
+
     /**
      * Direct measure of masked permutation probability, treating all ancillary qubits as post-selected T gate gadgets
      *
@@ -2536,7 +2535,7 @@ public:
      */
     virtual real1_f ProbMaskRdm(bool roundRz, bitCapInt mask, bitCapInt permutation)
     {
-        return ProbMask(mask, permutation);
+      return ProbMask(mask, permutation);
     }
     /**
      * Get permutation expectation value of bits, treating all ancillary qubits as post-selected T gate gadgets
@@ -2548,7 +2547,7 @@ public:
      */
     virtual real1_f ExpectationBitsAllRdm(bool roundRz, const std::vector<bitLenInt>& bits, bitCapInt offset = ZERO_BCI)
     {
-        return ExpectationBitsAll(bits, offset);
+      return ExpectationBitsAll(bits, offset);
     }
 
     /**
@@ -2575,7 +2574,7 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual void MultiShotMeasureMask(
-        const std::vector<bitCapInt>& qPowers, unsigned shots, unsigned long long* shotsArray);
+      const std::vector<bitCapInt>& qPowers, unsigned shots, unsigned long long* shotsArray);
 
     /**
      * Set individual bit to pure |0> (false) or |1> (true) state
@@ -2588,9 +2587,9 @@ public:
      */
     virtual void SetBit(bitLenInt qubit, bool value)
     {
-        if (value != M(qubit)) {
-            X(qubit);
-        }
+      if (value != M(qubit)) {
+        X(qubit);
+      }
     }
 
     /**
@@ -2601,7 +2600,7 @@ public:
      */
     virtual bool ApproxCompare(QInterfacePtr toCompare, real1_f error_tol = TRYDECOMPOSE_EPSILON)
     {
-        return SumSqrDiff(toCompare) <= error_tol;
+      return SumSqrDiff(toCompare) <= error_tol;
     }
 
     /**
@@ -2633,7 +2632,7 @@ public:
      * \warning PSEUDO-QUANTUM
      */
     virtual void NormalizeState(
-        real1_f nrm = REAL1_DEFAULT_ARG, real1_f norm_thresh = REAL1_DEFAULT_ARG, real1_f phaseArg = ZERO_R1_F) = 0;
+      real1_f nrm = REAL1_DEFAULT_ARG, real1_f norm_thresh = REAL1_DEFAULT_ARG, real1_f phaseArg = ZERO_R1_F) = 0;
 
     /**
      * If asynchronous work is still running, block until it finishes. Note that this is never necessary to get correct,
@@ -2781,14 +2780,14 @@ public:
      */
     virtual real1_f FirstNonzeroPhase()
     {
-        complex amp;
-        bitCapInt perm = ZERO_BCI;
-        do {
-            amp = GetAmplitude(perm);
-            bi_increment(&perm, 1U);
-        } while ((abs(amp) <= REAL1_EPSILON) && (perm < maxQPower));
+      complex amp;
+      bitCapInt perm = ZERO_BCI;
+      do {
+        amp = GetAmplitude(perm);
+        bi_increment(&perm, 1U);
+      } while ((abs(amp) <= REAL1_EPSILON) && (perm < maxQPower));
 
-        return (real1_f)std::arg(amp);
+      return (real1_f)std::arg(amp);
     }
 
     /**
@@ -2812,5 +2811,5 @@ public:
     virtual bitLenInt DepolarizingChannelStrong1Qb(bitLenInt qubit, real1_f lambda);
 
     /** @} */
-};
+  };
 } // namespace Qrack

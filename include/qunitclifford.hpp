@@ -201,7 +201,7 @@ public:
 
     real1_f ProbMask(bitCapInt mask, bitCapInt permutation);
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     QStabilizerPtr MakeStabilizer(
         bitLenInt length = 1U, bitCapInt perm = ZERO_BCI, complex phaseFac = CMPLX_DEFAULT_ARG)
@@ -213,7 +213,7 @@ public:
     }
 
     void SetQuantumState(const complex* inputState);
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         throw std::domain_error("QUnitClifford::SetAmplitude() not implemented!");
     }

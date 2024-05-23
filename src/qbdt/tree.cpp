@@ -17,23 +17,24 @@
 #include "qbdt.hpp"
 #include "qfactory.hpp"
 
+#include <cmath>
+
 #define IS_NODE_0(c) (norm(c) <= _qrack_qbdt_sep_thresh)
 
 namespace Qrack {
 
-QBdt::QBdt(std::vector<QInterfaceEngine> eng, bitLenInt qBitCount, bitCapInt initState, qrack_rand_gen_ptr rgp,
-    complex phaseFac, bool doNorm, bool randomGlobalPhase, bool useHostMem, int64_t deviceId, bool useHardwareRNG,
-    bool useSparseStateVec, real1_f norm_thresh, std::vector<int64_t> devIds, bitLenInt qubitThreshold,
-    real1_f sep_thresh)
-    : QInterface(qBitCount, rgp, doNorm, useHardwareRNG, randomGlobalPhase, doNorm ? norm_thresh : ZERO_R1_F)
-    , devID(deviceId)
-    , root(NULL)
-    , deviceIDs(devIds)
-    , engines(eng)
-    , shards(qubitCount)
-{
+QBdt::QBdt(const std::vector<QInterfaceEngine>& eng, bitLenInt qBitCount,
+           bitCapInt initState, qrack_rand_gen_ptr rgp,
+           complex phaseFac, bool doNorm, bool randomGlobalPhase,
+           bool useHostMem, int64_t deviceId, bool useHardwareRNG,
+           bool useSparseStateVec, real1_f norm_thresh,
+           const std::vector<int64_t>& devIds, bitLenInt qubitThreshold,
+           real1_f sep_thresh)
+  : QInterface(qBitCount, rgp, doNorm, useHardwareRNG, randomGlobalPhase,
+               doNorm ? norm_thresh : ZERO_R1_F),
+  devID(deviceId), root(nullptr), deviceIDs(devIds), engines(eng),
+  shards(qubitCount) {
     Init();
-
     SetPermutation(initState, phaseFac);
 }
 
@@ -227,31 +228,32 @@ size_t QBdt::CountBranches()
     return nodes.size();
 }
 
-void QBdt::SetPermutation(bitCapInt initState, complex phaseFac)
-{
-    DumpBuffers();
+void QBdt::SetPermutation(bitCapInt initState, const complex& phaseFac) {
+  DumpBuffers();
 
-    if (!qubitCount) {
-        return;
-    }
+  if (!qubitCount) {
+    return;
+  }
 
-    if (phaseFac == CMPLX_DEFAULT_ARG) {
-        if (randGlobalPhase) {
-            real1_f angle = Rand() * 2 * (real1_f)PI_R1;
-            phaseFac = complex((real1)cos(angle), (real1)sin(angle));
-        } else {
-            phaseFac = ONE_CMPLX;
-        }
-    }
+  complex pFac = phaseFac;
 
-    root = std::make_shared<QBdtNode>(phaseFac);
-    QBdtNodeInterfacePtr leaf = root;
-    for (bitLenInt qubit = 0U; qubit < qubitCount; ++qubit) {
-        const size_t bit = SelectBit(initState, qubit);
-        leaf->branches[bit] = std::make_shared<QBdtNode>(ONE_CMPLX);
-        leaf->branches[bit ^ 1U] = std::make_shared<QBdtNode>(ZERO_CMPLX);
-        leaf = leaf->branches[bit];
+  if (phaseFac == CMPLX_DEFAULT_ARG) {
+    if (randGlobalPhase) {
+      real1_f angle = Rand() * 2 * (real1_f)PI_R1;
+      pFac = complex((real1) std::cos(angle), (real1) std::sin(angle));
+    } else {
+      pFac = ONE_CMPLX;
     }
+  }
+
+  root = std::make_shared<QBdtNode>(pFac);
+  QBdtNodeInterfacePtr leaf = root;
+  for (bitLenInt qubit = 0U; qubit < qubitCount; ++qubit) {
+    const size_t bit = SelectBit(initState, qubit);
+    leaf->branches[bit] = std::make_shared<QBdtNode>(ONE_CMPLX);
+    leaf->branches[bit ^ 1U] = std::make_shared<QBdtNode>(ZERO_CMPLX);
+    leaf = leaf->branches[bit];
+  }
 }
 
 QInterfacePtr QBdt::Clone()

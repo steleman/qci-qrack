@@ -262,10 +262,12 @@ public:
     void GetQuantumState(complex* outputState) { engine->GetQuantumState(outputState); }
     void GetProbs(real1* outputProbs) { engine->GetProbs(outputProbs); }
     complex GetAmplitude(bitCapInt perm) { return engine->GetAmplitude(perm); }
-    void SetAmplitude(bitCapInt perm, complex amp) { engine->SetAmplitude(perm, amp); }
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG)
-    {
-        engine->SetPermutation(perm, phaseFac);
+    void SetAmplitude(bitCapInt perm, const complex& amp) {
+      engine->SetAmplitude(perm, amp);
+    }
+
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG) {
+      engine->SetPermutation(perm, phaseFac);
     }
 
     void Mtrx(const complex* mtrx, bitLenInt qubitIndex) { engine->Mtrx(mtrx, qubitIndex); }
@@ -476,7 +478,9 @@ public:
     {
         return engine->CtrlOrAntiProb(controlState, control, target);
     }
-    real1_f ProbAll(bitCapInt fullRegister) { return engine->ProbAll(fullRegister); }
+
+    virtual real1_f ProbAll(bitCapInt fullRegister) override;
+
     real1_f ProbMask(bitCapInt mask, bitCapInt permutation) { return engine->ProbMask(mask, permutation); }
     real1_f ProbParity(bitCapInt mask) { return engine->ProbParity(mask); }
     bool ForceMParity(bitCapInt mask, bool result, bool doForce = true)

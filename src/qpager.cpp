@@ -914,7 +914,7 @@ void QPager::GetProbs(real1* outputProbs)
 #endif
 }
 
-void QPager::SetPermutation(bitCapInt perm, complex phaseFac)
+void QPager::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     const bitCapIntOcl pagePower = (bitCapIntOcl)pageMaxQPower();
     const bitCapIntOcl permOcl = (bitCapIntOcl)perm & (maxQPowerOcl - 1U);
@@ -1666,6 +1666,13 @@ real1_f QPager::SumSqrDiff(QPagerPtr toCompare)
 #endif
 
     return toRet;
+}
+
+real1_f QPager::ProbAll(bitCapInt perm)
+{
+  bitCapInt p, a;
+  bi_div_mod(perm, pageMaxQPower(), &p, &a);
+  return qPages[(bitCapIntOcl)p]->ProbAll(a);
 }
 
 } // namespace Qrack

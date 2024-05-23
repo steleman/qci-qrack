@@ -67,4 +67,18 @@ QInterfacePtr QBdtHybrid::MakeSimulator(bool isBdt, bitCapInt perm, complex phas
 
     return toRet;
 }
+
+real1_f QBdtHybrid::ProbAll(bitCapInt fullRegister)
+{
+  const real1_f toRet = qbdt ?
+                        qbdt->ProbAll(fullRegister) :
+                        engine->ProbAll(fullRegister);
+
+  if (toRet >= (ONE_R1_F - FP_NORM_EPSILON)) {
+    SetPermutation(fullRegister);
+  }
+
+  return toRet;
+}
+
 } // namespace Qrack

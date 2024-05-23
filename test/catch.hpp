@@ -3258,7 +3258,7 @@ namespace Matchers {
 
         template<typename ObjectT>
         struct MatcherMethod {
-            virtual bool match( ObjectT const& arg ) const = 0;
+          virtual bool match( ObjectT const& arg ) const = 0;
         };
 
 #if defined(__OBJC__)

@@ -23,18 +23,14 @@
 
 namespace Qrack {
 
-QInterface::QInterface(
-    bitLenInt n, qrack_rand_gen_ptr rgp, bool doNorm, bool useHardwareRNG, bool randomGlobalPhase, real1_f norm_thresh)
-    : doNormalize(doNorm)
-    , randGlobalPhase(randomGlobalPhase)
-    , useRDRAND(useHardwareRNG)
-    , qubitCount(n)
-    , amplitudeFloor(norm_thresh)
-    , maxQPower(pow2(qubitCount))
-    , rand_generator(rgp)
-    , rand_distribution(ZERO_R1_F, ONE_R1_F)
-    , hardware_rand_generator(NULL)
-{
+QInterface::QInterface(bitLenInt n, qrack_rand_gen_ptr rgp, bool doNorm,
+                       bool useHardwareRNG, bool randomGlobalPhase,
+                       real1_f norm_thresh)
+  : doNormalize(doNorm), randGlobalPhase(randomGlobalPhase),
+    useRDRAND(useHardwareRNG), qubitCount(n), amplitudeFloor(norm_thresh),
+    maxQPower(pow2(qubitCount)), rand_generator(rgp),
+    rand_distribution(ZERO_R1_F, ONE_R1_F),
+    hardware_rand_generator(nullptr) {
 #if ENABLE_RDRAND || ENABLE_RNDFILE || ENABLE_DEVRAND
     if (useHardwareRNG) {
         hardware_rand_generator = std::make_shared<RdRandom>();
@@ -90,15 +86,19 @@ QInterface::QInterface(
 #endif
 }
 
+void QInterface::SetQubitCount(bitLenInt qb) {
+  qubitCount = qb;
+  maxQPower = bitCapIntOcl(pow2Ocl(qubitCount));
+}
+
 /// Set to a specific permutation of all qubits
-void QInterface::SetPermutation(bitCapInt perm, complex ignored)
-{
-    const bitCapInt measured = MAll();
-    for (bitLenInt i = 0U; i < qubitCount; ++i) {
-        if (bi_and_1((perm ^ measured) >> i)) {
-            X(i);
-        }
+void QInterface::SetPermutation(bitCapInt perm, const complex& ignored) {
+  bitCapInt measured = MAll();
+  for (bitLenInt i = 0U; i < qubitCount; ++i) {
+    if (bi_and_1((perm ^ measured) >> i)) {
+      X(i);
     }
+  }
 }
 
 /// Quantum Fourier Transform - Optimized for going from |0>/|1> to |+>/|-> basis
@@ -183,25 +183,24 @@ void QInterface::IQFTR(const std::vector<bitLenInt>& qubits, bool trySeparate)
 }
 
 /// Set register bits to given permutation
-void QInterface::SetReg(bitLenInt start, bitLenInt length, bitCapInt value)
-{
-    // First, single bit operations are better optimized for this special case:
-    if (length == 1) {
-        SetBit(start, (bool)(bi_and_1(value)));
-        return;
-    }
+void QInterface::SetReg(bitLenInt start, bitLenInt length, bitCapInt value) {
+  // First, single bit operations are better optimized for this special case:
+  if (length == 1) {
+    SetBit(start, (bool)(bi_and_1(value)));
+    return;
+  }
 
-    if (!start && (length == qubitCount)) {
-        SetPermutation(value);
-        return;
-    }
+  if (!start && (length == qubitCount)) {
+    SetPermutation(value);
+    return;
+  }
 
-    const bitCapInt regVal = MReg(start, length);
-    for (bitLenInt i = 0U; i < length; ++i) {
-        if ((bi_compare_0(bitSlice(i, regVal)) == 0) != (bi_compare_0(bitSlice(i, value)) == 0)) {
-            X(start + i);
-        }
+  bitCapInt regVal = MReg(start, length);
+  for (bitLenInt i = 0U; i < length; ++i) {
+    if ((bi_compare_0(bitSlice(i, regVal)) == 0) != (bi_compare_0(bitSlice(i, value)) == 0)) {
+      X(start + i);
     }
+  }
 }
 
 /// Bit-wise apply measurement gate to a register
@@ -580,6 +579,14 @@ bool QInterface::TryDecompose(bitLenInt start, QInterfacePtr dest, real1_f error
     }
 
     return didSeparate;
+}
+
+real1_f QInterface::ProbAll(bitCapInt fullRegister) {
+  return clampProb((real1_f)norm(GetAmplitude(fullRegister)));
+}
+
+real1_f QInterface::ProbAllRdm(bool roundRz, bitCapInt fullRegister) {
+  return ProbAll(fullRegister);
 }
 
 #define REG_GATE_1(gate)                                                                                               \

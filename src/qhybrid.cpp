@@ -67,6 +67,10 @@ QHybrid::QHybrid(bitLenInt qBitCount, bitCapInt initState, qrack_rand_gen_ptr rg
         deviceIDs, pagerThresholdQubits, separabilityThreshold));
 }
 
+real1_f QHybrid::ProbAll(bitCapInt fullRegister) {
+  return engine->ProbAll(fullRegister);
+}
+
 QEnginePtr QHybrid::MakeEngine(bool isOpenCL)
 {
     QEnginePtr toRet =

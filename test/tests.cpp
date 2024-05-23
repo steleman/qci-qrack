@@ -10,36 +10,38 @@
 // See LICENSE.md in the project root or https://www.gnu.org/licenses/lgpl-3.0.en.html
 // for details.
 
-#include "qcircuit.hpp"
-#include "qfactory.hpp"
+#include <common/qrack_types.hpp>
+#include <qcircuit.hpp>
+#include <qfactory.hpp>
 
 #include <atomic>
 #include <iostream>
 #include <list>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
-#include "catch.hpp"
-#include "qneuron.hpp"
+#include <catch.hpp>
+#include <qneuron.hpp>
 
-#include "tests.hpp"
+#include <tests.hpp>
 
 using namespace Qrack;
 
 #define EPSILON 0.01f
-#define REQUIRE_FLOAT(A, B)                                                                                            \
-    do {                                                                                                               \
-        real1_f __tmp_a = A;                                                                                           \
-        real1_f __tmp_b = B;                                                                                           \
-        REQUIRE(__tmp_a < (__tmp_b + EPSILON));                                                                        \
-        REQUIRE(__tmp_a > (__tmp_b - EPSILON));                                                                        \
+#define REQUIRE_FLOAT(A, B) \
+  do { \
+    real1_f __tmp_a = A; \
+    real1_f __tmp_b = B; \
+    REQUIRE(__tmp_a < (__tmp_b + EPSILON)); \
+    REQUIRE(__tmp_a > (__tmp_b - EPSILON)); \
     } while (0);
-#define REQUIRE_CMPLX(A, B)                                                                                            \
-    do {                                                                                                               \
-        complex __tmp_a = A;                                                                                           \
-        complex __tmp_b = B;                                                                                           \
-        REQUIRE(std::norm(__tmp_a - __tmp_b) < EPSILON);                                                               \
-    } while (0);
+
+#define REQUIRE_CMPLX(A, B) \
+  do { \
+    complex __tmp_a = A; \
+    complex __tmp_b = B; \
+    REQUIRE(std::norm(__tmp_a - __tmp_b) < EPSILON); \
+  } while (0);
 
 #define C_SQRT1_2 complex(SQRT1_2_R1, ZERO_R1)
 #define C_I_SQRT1_2 complex(ZERO_R1, SQRT1_2_R1)
@@ -52,30 +54,38 @@ void log(QInterfacePtr p);
 
 void print_bin(int bits, int d)
 {
-    int mask = 1 << bits;
+    int mask = 1U << bits;
     while (mask != 0) {
-        printf("%d", !!(d & mask));
-        mask >>= 1;
+      printf("%i", !!(d & mask));
+      mask >>= 1;
     }
 }
 
-void log(QInterfacePtr p) { std::cout << std::endl << std::showpoint << p << std::endl; }
-
-QInterfacePtr MakeEngine(bitLenInt qubitCount)
-{
-    QInterfacePtr toRet = CreateQuantumInterface(
-        { testEngineType, testSubEngineType, testSubSubEngineType, testSubSubSubEngineType }, qubitCount, ZERO_BCI, rng,
-        ONE_CMPLX, enable_normalization, true, false, device_id, !disable_hardware_rng, sparse, REAL1_EPSILON, devList);
-
-    if (disable_t_injection) {
-        toRet->SetTInjection(false);
-    }
-    if (disable_reactive_separation) {
-        toRet->SetReactiveSeparate(false);
-    }
-
-    return toRet;
+void log(QInterfacePtr p) {
+  std::cout << std::endl << std::showpoint << p << std::endl;
 }
+
+QInterfacePtr MakeEngine(bitLenInt qubitCount) {
+  QInterfacePtr toRet =
+    CreateQuantumInterface({ testEngineType, testSubEngineType,
+                             testSubSubEngineType, testSubSubSubEngineType },
+                             qubitCount, ZERO_BCI, rng,
+                             ONE_CMPLX, enable_normalization, true, false,
+                             device_id, !disable_hardware_rng, sparse,
+                             REAL1_EPSILON, devList);
+
+  if (disable_t_injection) {
+    toRet->SetTInjection(false);
+  }
+
+  if (disable_reactive_separation) {
+    toRet->SetReactiveSeparate(false);
+  }
+
+  return toRet;
+}
+
+static std::vector<bitLenInt> Controls;
 
 TEST_CASE("test_complex")
 {
@@ -443,7 +453,9 @@ TEST_CASE_METHOD(QInterfaceTestFixture, "test_cnot")
     qftReg->H(0, 2);
     REQUIRE_THAT(qftReg, HasProbability(0x00));
 
-    // 2022-02-16 - QBdt fails at the 11-to-12 index, 12th-to-13th bit boundary, and upwards.
+    // 2022-02-16 - QBdt fails at the 11-to-12 index, 12th-to-13th bit boundary,
+    // and upwards.
+    // FIXME:
     qftReg->SetPermutation(0x1000);
     qftReg->CNOT(12, 11);
     REQUIRE_THAT(qftReg, HasProbability(0x1800));
@@ -966,7 +978,7 @@ TEST_CASE_METHOD(QInterfaceTestFixture, "test_apply_controlled_single_phase")
 
 TEST_CASE_METHOD(QInterfaceTestFixture, "test_apply_anti_controlled_single_phase")
 {
-    const std::vector<bitLenInt> controls{ 0 };
+    std::vector<bitLenInt> controls{ 0 };
 
     qftReg->SetPermutation(0x00);
     qftReg->H(1);
@@ -2420,14 +2432,14 @@ TEST_CASE_METHOD(QInterfaceTestFixture, "test_anticcy_reg")
 
 TEST_CASE_METHOD(QInterfaceTestFixture, "test_anticcz_reg")
 {
-    bitLenInt controls[2] = { 0, 1 };
+    std::vector<bitLenInt> controls = { 0, 1 };
 
     qftReg->SetPermutation(0x00);
     qftReg->H(0, 3);
     qftReg->AntiCCZ(0, 1, 2);
-    qftReg->MACPhase(controls, 2, I_CMPLX, -I_CMPLX, 2);
+    qftReg->MACPhase(controls, I_CMPLX, -I_CMPLX, 2);
     qftReg->H(2);
-    qftReg->MACPhase(controls, 2, ONE_CMPLX, -ONE_CMPLX, 2);
+    qftReg->MACPhase(controls, ONE_CMPLX, -ONE_CMPLX, 2);
     qftReg->H(0, 2);
     REQUIRE_THAT(qftReg, HasProbability(0x00));
 }
@@ -2525,27 +2537,27 @@ TEST_CASE_METHOD(QInterfaceTestFixture, "test_swap_shunts")
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->CSwap(NULL, 0, 0, 0);
+    qftReg->CSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->CSqrtSwap(NULL, 0, 0, 0);
+    qftReg->CSqrtSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->CISqrtSwap(NULL, 0, 0, 0);
+    qftReg->CISqrtSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->AntiCSwap(NULL, 0, 0, 0);
+    qftReg->AntiCSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->AntiCSqrtSwap(NULL, 0, 0, 0);
+    qftReg->AntiCSqrtSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 
-    qftReg->AntiCISqrtSwap(NULL, 0, 0, 0);
+    qftReg->AntiCISqrtSwap(Controls, 0, 0);
     REQUIRE_FLOAT(qftReg->Prob(0), 0.5);
     REQUIRE_FLOAT(qftReg->Prob(1), 0);
 }

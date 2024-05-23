@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "qfactory.hpp"
+#include <qfactory.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -20,7 +20,7 @@
 #include <string>
 
 /* A quick-and-dirty epsilon for clamping floating point values. */
-#define QRACK_TEST_EPSILON 0.5
+#define QRACK_TEST_EPSILON static_cast<double>(0.5)
 
 /*
  * Default engine type to run the tests with. Global because catch doesn't
@@ -140,49 +140,77 @@ public:
 };
 
 class ProbPattern : public Catch::MatcherBase<Qrack::QInterfacePtr> {
-    bitLenInt start;
-    bitLenInt length;
-    bitCapInt mask;
+  mutable bitLenInt start;
+  mutable bitLenInt length;
+  mutable bitCapInt mask;
 
 public:
-    ProbPattern(bitLenInt s, bitLenInt l, bitCapInt m)
-        : start(s)
-        , length(l)
-        , mask(m)
-    {
+  ProbPattern(bitLenInt s, bitLenInt l, bitCapInt m)
+  : Catch::MatcherBase<Qrack::QInterfacePtr>(),
+  start(s), length(l), mask(m) { }
+
+  ProbPattern(const ProbPattern& rhs)
+  : Catch::MatcherBase<Qrack::QInterfacePtr>(),
+  start(rhs.start), length(rhs.length), mask(rhs.mask) { }
+
+  ProbPattern(ProbPattern&& rhs)
+  : Catch::MatcherBase<Qrack::QInterfacePtr>(),
+  start(rhs.start), length(rhs.length), mask(rhs.mask) { }
+
+  virtual ~ProbPattern() = default;
+
+  ProbPattern& operator=(const ProbPattern& rhs) {
+    if (this != &rhs) {
+      start = rhs.start;
+      length = rhs.length;
+      mask = rhs.mask;
     }
 
-    virtual bool match(Qrack::QInterfacePtr const& qftReg) const override
-    {
-        if (length == 0) {
-            ((ProbPattern*)this)->length = qftReg->GetQubitCount();
-        }
+    return *this;
+  }
 
-        if (length > sizeof(mask) * 8) {
-            WARN("requested length " << length << " larger than possible bitmap " << sizeof(mask) * 8);
-            return false;
-        }
+  ProbPattern& operator=(ProbPattern&& rhs) {
+    start = rhs.start;
+    length = rhs.length;
+    mask = rhs.mask;
+    return *this;
+  }
 
-        for (bitLenInt j = 0; j < length; j++) {
-            /* Consider anything more than a 50% probability as a '1'. */
-            const bool bit = qftReg->Prob(j + start) > QRACK_TEST_EPSILON;
-            if (bit == (bi_and_1(mask >> j) == 0)) {
-                return false;
-            }
-        }
-        return true;
+  virtual bool match(Qrack::QInterfacePtr const& qftReg) const override {
+    if (length == 0) {
+      const_cast<ProbPattern*>(this)->length = qftReg->GetQubitCount();
     }
 
-    virtual std::string describe() const override
-    {
-        std::ostringstream ss;
-        ss << "matches bit pattern [" << (int)start << "," << start + length << "]: " << (int)length << "/";
-        for (int j = (length - 1); j >= 0; j--) {
-            ss << bi_and_1(mask >> j);
-        }
-        return ss.str();
+    if (length > sizeof(mask) * 8) {
+      WARN("requested length " << length << " larger than possible bitmap "
+           << sizeof(mask) * 8);
+      return false;
     }
+
+    for (bitLenInt j = 0; j < length; j++) {
+      /* Consider anything more than a 50% probability as a '1'. */
+      bool bit = qftReg->Prob(j + start) > QRACK_TEST_EPSILON;
+      if (bit == (bi_and_1(mask >> j) == 0)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  virtual std::string describe() const override {
+    std::ostringstream ss;
+    ss << "matches bit pattern [" << (int)start << "," << start + length
+      << "]: " << (int)length << "/";
+    for (int32_t j = (length - 1); j >= 0; j--) {
+      ss << static_cast<uint64_t>(bi_and_1(mask >> static_cast<uint32_t>(j)));
+    }
+
+    return ss.str();
+  }
 };
 
-inline ProbPattern HasProbability(bitLenInt s, bitLenInt l, bitCapInt m) { return ProbPattern(s, l, m); }
-inline ProbPattern HasProbability(bitCapInt m) { return ProbPattern(0, 0, m); }
+ProbPattern HasProbability(bitLenInt s, bitLenInt l, bitCapInt m);
+
+ProbPattern HasProbability(bitCapInt m);
+

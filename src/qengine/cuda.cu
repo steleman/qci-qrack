@@ -618,93 +618,95 @@ void QEngineCUDA::DispatchQueue()
     cudaLaunchHostFunc(device_context->queue, _PopQueue, (void*)this);
 }
 
-void QEngineCUDA::SetDevice(int64_t dID)
-{
-    const size_t deviceCount = CUDAEngine::Instance().GetDeviceCount();
+void QEngineCUDA::SetDevice(int64_t dID) {
+  const size_t deviceCount = CUDAEngine::Instance().GetDeviceCount();
 
-    if (!deviceCount) {
-        throw std::runtime_error("QEngineCUDA::SetDevice(): No available devices.");
-    }
+  if (!deviceCount) {
+    throw std::runtime_error("QEngineCUDA::SetDevice(): No available devices.");
+  }
 
-    if (dID > ((int64_t)deviceCount)) {
-        throw std::runtime_error("QEngineCUDA::SetDevice(): Requested device doesn't exist.");
-    }
+  if (dID > ((int64_t)deviceCount)) {
+    throw std::runtime_error("QEngineCUDA::SetDevice(): Requested device doesn't exist.");
+  }
 
-    clFinish();
+  clFinish();
 
-    const DeviceContextPtr nDeviceContext = CUDAEngine::Instance().GetDeviceContextPtr(dID);
-    const int64_t defDevId = (int)CUDAEngine::Instance().GetDefaultDeviceID();
+  const DeviceContextPtr nDeviceContext = CUDAEngine::Instance().GetDeviceContextPtr(dID);
+  const int64_t defDevId = (int)CUDAEngine::Instance().GetDefaultDeviceID();
 
-    if (!didInit) {
-        AddAlloc(sizeof(complex) * maxQPowerOcl);
-    } else if ((dID == deviceID) || ((dID == -1) && (deviceID == defDevId)) ||
-        ((deviceID == -1) && (dID == defDevId))) {
-        // If we're "switching" to the device we already have, don't reinitialize.
-        return;
-    }
+  if (!didInit) {
+    AddAlloc(sizeof(complex) * maxQPowerOcl);
+  } else if ((dID == deviceID) || ((dID == -1) && (deviceID == defDevId)) ||
+             ((deviceID == -1) && (dID == defDevId))) {
+    // If we're "switching" to the device we already have, don't reinitialize.
+    return;
+  }
 
-    device_context = nDeviceContext;
-    deviceID = dID;
+  device_context = nDeviceContext;
+  deviceID = dID;
 
-    // If the user wants not to use host RAM, but we can't allocate enough on the device, fall back to host RAM anyway.
-    const size_t stateVecSize = maxQPowerOcl * sizeof(complex);
+  // If the user wants not to use host RAM, but we can't allocate enough on the device, fall back to host RAM anyway.
+  const size_t stateVecSize = maxQPowerOcl * sizeof(complex);
 #if ENABLE_OCL_MEM_GUARDS
-    // Device RAM should be large enough for 2 times the size of the stateVec, plus some excess.
-    if (stateVecSize > device_context->GetMaxAlloc()) {
-        throw bad_alloc("VRAM limits exceeded in QEngineCUDA::SetDevice()");
-    }
+  // Device RAM should be large enough for 2 times the size of the stateVec, plus some excess.
+  if (stateVecSize > device_context->GetMaxAlloc()) {
+    throw bad_alloc("VRAM limits exceeded in QEngineCUDA::SetDevice()");
+  }
 #endif
-    usingHostRam = (useHostRam || ((OclMemDenom * stateVecSize) > device_context->GetGlobalSize()));
+  usingHostRam = (useHostRam || ((OclMemDenom * stateVecSize) >
+                                 device_context->GetGlobalSize()));
 
-    const bitCapIntOcl oldNrmVecAlignSize = nrmGroupSize ? (nrmGroupCount / nrmGroupSize) : 0U;
-    nrmGroupCount = device_context->GetPreferredConcurrency();
-    nrmGroupSize = device_context->GetPreferredSizeMultiple();
-    if (nrmGroupSize > device_context->GetMaxWorkGroupSize()) {
-        nrmGroupSize = device_context->GetMaxWorkGroupSize();
-    }
-    // constrain to a power of two
-    nrmGroupSize = pow2Ocl(log2Ocl(nrmGroupSize));
+  const bitCapIntOcl oldNrmVecAlignSize =
+    nrmGroupSize ? (nrmGroupCount / nrmGroupSize) : 0U;
+  nrmGroupCount = device_context->GetPreferredConcurrency();
+  nrmGroupSize = device_context->GetPreferredSizeMultiple();
+  if (nrmGroupSize > device_context->GetMaxWorkGroupSize()) {
+    nrmGroupSize = device_context->GetMaxWorkGroupSize();
+  }
+  // constrain to a power of two
+  nrmGroupSize = pow2Ocl(log2Ocl(nrmGroupSize));
 
-    const size_t nrmArrayAllocSize =
-        (!nrmGroupSize || ((sizeof(real1) * nrmGroupCount / nrmGroupSize) < QRACK_ALIGN_SIZE))
-        ? QRACK_ALIGN_SIZE
-        : (sizeof(real1) * nrmGroupCount / nrmGroupSize);
+  const size_t nrmArrayAllocSize =
+    (!nrmGroupSize || ((sizeof(real1) * nrmGroupCount / nrmGroupSize) < QRACK_ALIGN_SIZE))
+    ? QRACK_ALIGN_SIZE
+    : (sizeof(real1) * nrmGroupCount / nrmGroupSize);
 
-    const bool doResize = (nrmGroupCount / nrmGroupSize) != oldNrmVecAlignSize;
+  const bool doResize = (nrmGroupCount / nrmGroupSize) != oldNrmVecAlignSize;
 
-    nrmBuffer = NULL;
-    if (didInit && doResize) {
-        nrmArray = NULL;
-        SubtractAlloc(oldNrmVecAlignSize);
-    }
+  nrmBuffer = NULL;
+  if (didInit && doResize) {
+    nrmArray = NULL;
+    SubtractAlloc(oldNrmVecAlignSize);
+  }
 
-    if (!didInit || doResize) {
-        AddAlloc(nrmArrayAllocSize);
+  if (!didInit || doResize) {
+    AddAlloc(nrmArrayAllocSize);
 #if defined(__ANDROID__)
-        nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
-            new real1[nrmArrayAllocSize / sizeof(real1)], [](real1* r) { delete[] r; });
+    nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
+      new real1[nrmArrayAllocSize / sizeof(real1)], [](real1* r) { delete[] r; });
 #elif defined(__APPLE__)
-        nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
-            _aligned_nrm_array_alloc(nrmArrayAllocSize), [](real1* c) { free(c); });
+    nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
+      _aligned_nrm_array_alloc(nrmArrayAllocSize), [](real1* c) { free(c); });
 #elif defined(_WIN32) && !defined(__CYGWIN__)
-        nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
-            (real1*)_aligned_malloc(nrmArrayAllocSize, QRACK_ALIGN_SIZE), [](real1* c) { _aligned_free(c); });
+    nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
+      (real1*)_aligned_malloc(nrmArrayAllocSize, QRACK_ALIGN_SIZE), [](real1* c) { _aligned_free(c); });
 #else
-        nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
-            (real1*)aligned_alloc(QRACK_ALIGN_SIZE, nrmArrayAllocSize), [](real1* c) { free(c); });
+    nrmArray = std::unique_ptr<real1[], void (*)(real1*)>(
+      (real1*)aligned_alloc(QRACK_ALIGN_SIZE, nrmArrayAllocSize), [](real1* c) { free(c); });
 #endif
-    }
-    nrmBuffer = MakeBuffer(CL_MEM_READ_WRITE, nrmArrayAllocSize);
+  }
 
-    poolItems.clear();
-    poolItems.push_back(std::make_shared<PoolItem>());
+  nrmBuffer = MakeBuffer(CL_MEM_READ_WRITE, nrmArrayAllocSize);
 
-    if (!didInit) {
-        stateVec = AllocStateVec(maxQPowerOcl, usingHostRam);
-        stateBuffer = MakeStateVecBuffer(stateVec);
-    }
+  poolItems.clear();
+  poolItems.push_back(std::make_shared<PoolItem>());
 
-    didInit = true;
+  if (!didInit) {
+    stateVec = AllocStateVec(maxQPowerOcl, usingHostRam);
+    stateBuffer = MakeStateVecBuffer(stateVec);
+  }
+
+  didInit = true;
 }
 
 real1_f QEngineCUDA::ParSum(real1* toSum, bitCapIntOcl maxI)
@@ -723,30 +725,30 @@ void QEngineCUDA::InitOCL(int64_t devID) { SetDevice(devID); }
 
 void QEngineCUDA::ResetStateBuffer(BufferPtr nStateBuffer) { stateBuffer = nStateBuffer; }
 
-void QEngineCUDA::SetPermutation(bitCapInt perm, complex phaseFac)
-{
-    clDump();
+void QEngineCUDA::SetPermutation(bitCapInt perm, const complex& phaseFac) {
+  clDump();
 
-    if (!stateBuffer) {
-        ReinitBuffer();
-    }
+  if (!stateBuffer) {
+    ReinitBuffer();
+  }
 
-    ClearBuffer(stateBuffer, 0U, maxQPowerOcl);
+  ClearBuffer(stateBuffer, 0U, maxQPowerOcl);
 
-    // If "permutationAmp" amp is in (read-only) use, this method completely supersedes that application anyway.
+  // If "permutationAmp" amp is in (read-only) use, this method completely supersedes that application anyway.
 
-    if (phaseFac == CMPLX_DEFAULT_ARG) {
-        permutationAmp = GetNonunitaryPhase();
-    } else {
-        permutationAmp = phaseFac;
-    }
+  if (phaseFac == CMPLX_DEFAULT_ARG) {
+    permutationAmp = GetNonunitaryPhase();
+  } else {
+    permutationAmp = phaseFac;
+  }
 
-    tryCuda("Failed to enqueue buffer write", [&] {
-        return cudaMemcpy((void*)((complex*)(stateBuffer.get()) + (bitCapIntOcl)perm), (void*)&permutationAmp,
-            sizeof(complex), cudaMemcpyHostToDevice);
-    });
+  tryCuda("Failed to enqueue buffer write", [&] {
+          return cudaMemcpy((void*)((complex*)(stateBuffer.get()) +
+                                    (bitCapIntOcl)perm), (void*)&permutationAmp,
+                            sizeof(complex), cudaMemcpyHostToDevice);
+          });
 
-    QueueSetRunningNorm(ONE_R1_F);
+  QueueSetRunningNorm(ONE_R1_F);
 }
 
 /// NOT gate, which is also Pauli x matrix
@@ -765,34 +767,35 @@ void QEngineCUDA::Z(bitLenInt qubit)
     Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PAULIZ);
 }
 
-void QEngineCUDA::Invert(complex topRight, complex bottomLeft, bitLenInt qubitIndex)
-{
-    if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topRight)) && IS_NORM_0(topRight - bottomLeft)) {
-        X(qubitIndex);
-        return;
-    }
+void QEngineCUDA::Invert(const complex& topRight, const complex& bottomLeft,
+                         bitLenInt qubitIndex) {
+  if ((randGlobalPhase || IS_NORM_0(ONE_CMPLX - topRight)) &&
+      IS_NORM_0(topRight - bottomLeft)) {
+    X(qubitIndex);
+    return;
+  }
 
-    const complex pauliX[4]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
-    const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
-    Apply2x2(0U, qPowers[0], pauliX, 1U, qPowers, false, SPECIAL_2X2::INVERT);
+  const complex pauliX[4]{ ZERO_CMPLX, topRight, bottomLeft, ZERO_CMPLX };
+  const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
+  Apply2x2(0U, qPowers[0], pauliX, 1U, qPowers, false, SPECIAL_2X2::INVERT);
 }
 
-void QEngineCUDA::Phase(complex topLeft, complex bottomRight, bitLenInt qubitIndex)
-{
-    if (randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) {
-        if (IS_NORM_0(topLeft - bottomRight)) {
-            return;
-        }
-
-        if (IS_NORM_0(topLeft + bottomRight)) {
-            Z(qubitIndex);
-            return;
-        }
+void QEngineCUDA::Phase(const complex& topLeft, const complex& bottomRight,
+                        bitLenInt qubitIndex) {
+  if (randGlobalPhase || IS_NORM_0(ONE_CMPLX - topLeft)) {
+    if (IS_NORM_0(topLeft - bottomRight)) {
+      return;
     }
 
-    const complex pauliZ[4]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
-    const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
-    Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PHASE);
+    if (IS_NORM_0(topLeft + bottomRight)) {
+      Z(qubitIndex);
+      return;
+    }
+  }
+
+  const complex pauliZ[4]{ topLeft, ZERO_CMPLX, ZERO_CMPLX, bottomRight };
+  const bitCapIntOcl qPowers[1]{ pow2Ocl(qubitIndex) };
+  Apply2x2(0U, qPowers[0], pauliZ, 1U, qPowers, false, SPECIAL_2X2::PHASE);
 }
 
 void QEngineCUDA::XMask(bitCapInt mask)
@@ -823,208 +826,209 @@ void QEngineCUDA::PhaseParity(real1_f radians, bitCapInt mask)
     BitMask((bitCapIntOcl)mask, OCL_API_PHASE_PARITY, radians);
 }
 
-void QEngineCUDA::Apply2x2(bitCapIntOcl offset1, bitCapIntOcl offset2, const complex* mtrx, bitLenInt bitCount,
-    const bitCapIntOcl* qPowersSorted, bool doCalcNorm, SPECIAL_2X2 special, real1_f norm_thresh)
-{
-    CHECK_ZERO_SKIP();
+void QEngineCUDA::Apply2x2(bitCapIntOcl offset1, bitCapIntOcl offset2,
+                           const complex* mtrx, bitLenInt bitCount,
+                           const bitCapIntOcl* qPowersSorted, bool doCalcNorm,
+                           SPECIAL_2X2 special, real1_f norm_thresh) {
+  CHECK_ZERO_SKIP();
 
-    if ((offset1 >= maxQPowerOcl) || (offset2 >= maxQPowerOcl)) {
-        throw std::invalid_argument(
-            "QEngineCUDA::Apply2x2 offset1 and offset2 parameters must be within allocated qubit bounds!");
+  if ((offset1 >= maxQPowerOcl) || (offset2 >= maxQPowerOcl)) {
+    throw std::invalid_argument(
+      "QEngineCUDA::Apply2x2 offset1 and offset2 parameters must be within allocated qubit bounds!");
+  }
+
+  for (bitLenInt i = 0U; i < bitCount; ++i) {
+    if (qPowersSorted[i] >= maxQPowerOcl) {
+      throw std::invalid_argument(
+        "QEngineCUDA::Apply2x2 parameter qPowersSorted array values must be within allocated qubit bounds!");
     }
+  }
 
-    for (bitLenInt i = 0U; i < bitCount; ++i) {
-        if (qPowersSorted[i] >= maxQPowerOcl) {
-            throw std::invalid_argument(
-                "QEngineCUDA::Apply2x2 parameter qPowersSorted array values must be within allocated qubit bounds!");
-        }
-    }
+  const bool skipNorm = !doNormalize || (abs(ONE_R1 - runningNorm) <= FP_NORM_EPSILON);
+  const bool isXGate = skipNorm && (special == SPECIAL_2X2::PAULIX);
+  const bool isZGate = skipNorm && (special == SPECIAL_2X2::PAULIZ);
+  const bool isInvertGate = skipNorm && (special == SPECIAL_2X2::INVERT);
+  const bool isPhaseGate = skipNorm && (special == SPECIAL_2X2::PHASE);
 
-    const bool skipNorm = !doNormalize || (abs(ONE_R1 - runningNorm) <= FP_NORM_EPSILON);
-    const bool isXGate = skipNorm && (special == SPECIAL_2X2::PAULIX);
-    const bool isZGate = skipNorm && (special == SPECIAL_2X2::PAULIZ);
-    const bool isInvertGate = skipNorm && (special == SPECIAL_2X2::INVERT);
-    const bool isPhaseGate = skipNorm && (special == SPECIAL_2X2::PHASE);
+  // Are we going to calculate the normalization factor, on the fly? We can't, if this call doesn't iterate through
+  // every single permutation amplitude.
+  bool doApplyNorm = doNormalize && (bitCount == 1) && (runningNorm > ZERO_R1) && !isXGate && !isZGate &&
+    !isInvertGate && !isPhaseGate;
+  doCalcNorm &= doApplyNorm || (runningNorm <= ZERO_R1);
+  doApplyNorm &= (runningNorm != ONE_R1);
 
-    // Are we going to calculate the normalization factor, on the fly? We can't, if this call doesn't iterate through
-    // every single permutation amplitude.
-    bool doApplyNorm = doNormalize && (bitCount == 1) && (runningNorm > ZERO_R1) && !isXGate && !isZGate &&
-        !isInvertGate && !isPhaseGate;
-    doCalcNorm &= doApplyNorm || (runningNorm <= ZERO_R1);
-    doApplyNorm &= (runningNorm != ONE_R1);
+  PoolItemPtr poolItem = GetFreePoolItem();
 
-    PoolItemPtr poolItem = GetFreePoolItem();
+  // Arguments are concatenated into buffers by primitive type, such as integer or complex number.
 
-    // Arguments are concatenated into buffers by primitive type, such as integer or complex number.
+  // Load the integer kernel arguments buffer.
+  const bitCapIntOcl maxI = maxQPowerOcl >> bitCount;
+  bitCapIntOcl bciArgs[5]{ offset2, offset1, maxI, bitCount, 0U };
 
-    // Load the integer kernel arguments buffer.
-    const bitCapIntOcl maxI = maxQPowerOcl >> bitCount;
-    bitCapIntOcl bciArgs[5]{ offset2, offset1, maxI, bitCount, 0U };
+  // We have default OpenCL work item counts and group sizes, but we may need to use different values due to the total
+  // amount of work in this method call instance.
+  const size_t ngc = FixWorkItemCount(maxI, nrmGroupCount);
+  const size_t ngs = FixGroupSize(ngc, nrmGroupSize);
 
-    // We have default OpenCL work item counts and group sizes, but we may need to use different values due to the total
-    // amount of work in this method call instance.
-    const size_t ngc = FixWorkItemCount(maxI, nrmGroupCount);
-    const size_t ngs = FixGroupSize(ngc, nrmGroupSize);
-
-    // In an efficient OpenCL kernel, every single byte loaded comes at a significant execution time premium.
-    // We handle single and double bit gates as special cases, for many reasons. Given that we have already separated
-    // these out as special cases, since we know the bit count, we can eliminate the qPowersSorted buffer, by loading
-    // its one or two values into the bciArgs buffer, of the same type. This gives us a significant execution time
-    // savings.
-    size_t bciArgsSize = 4;
-    if (bitCount == 1) {
-        // Single bit gates offsets are always 0 and target bit power. Hence, we overwrite one of the bit offset
-        // arguments.
-        if (ngc == maxI) {
-            bciArgsSize = 3;
-            bciArgs[2] = qPowersSorted[0] - 1U;
-        } else {
-            bciArgsSize = 4;
-            bciArgs[3] = qPowersSorted[0] - 1U;
-        }
-    } else if (bitCount == 2) {
-        // Double bit gates include both controlled and swap gates. To reuse the code for both cases, we need two offset
-        // arguments. Hence, we cannot easily overwrite either of the bit offset arguments.
-        bciArgsSize = 5;
-        bciArgs[3] = qPowersSorted[0] - 1U;
-        bciArgs[4] = qPowersSorted[1] - 1U;
-    }
-    DISPATCH_TEMP_WRITE(poolItem->ulongBuffer, sizeof(bitCapIntOcl) * bciArgsSize, bciArgs);
-
-    // Load the 2x2 complex matrix and the normalization factor into the complex arguments buffer.
-    complex cmplx[CMPLX_NORM_LEN];
-    std::copy(mtrx, mtrx + 4, cmplx);
-
-    // Is the vector already normalized, or is this method not appropriate for on-the-fly normalization?
-    cmplx[4] = complex(doApplyNorm ? (ONE_R1 / (real1)sqrt(runningNorm)) : ONE_R1, ZERO_R1);
-    cmplx[5] = (real1)norm_thresh;
-
-    BufferPtr locCmplxBuffer;
-    if (!isXGate && !isZGate) {
-        DISPATCH_TEMP_WRITE(poolItem->cmplxBuffer, sizeof(complex) * CMPLX_NORM_LEN, cmplx);
-    }
-
-    // Load a buffer with the powers of 2 of each bit index involved in the operation.
-    BufferPtr locPowersBuffer;
-    if (bitCount > 2) {
-        locPowersBuffer = MakeBuffer(CL_MEM_READ_ONLY, sizeof(bitCapIntOcl) * bitCount);
-        if (sizeof(bitCapInt) == sizeof(bitCapIntOcl)) {
-            DISPATCH_TEMP_WRITE(locPowersBuffer, sizeof(bitCapIntOcl) * bitCount, qPowersSorted);
-        } else {
-            DISPATCH_TEMP_WRITE(locPowersBuffer, sizeof(bitCapIntOcl) * bitCount, qPowersSorted);
-        }
-    }
-
-    // We load the appropriate kernel, that does/doesn't CALCULATE the norm, and does/doesn't APPLY the norm.
-    unsigned char kernelMask = APPLY2X2_DEFAULT;
-    if (bitCount == 1) {
-        kernelMask |= APPLY2X2_SINGLE;
-        if (isXGate) {
-            kernelMask |= APPLY2X2_X;
-        } else if (isZGate) {
-            kernelMask |= APPLY2X2_Z;
-        } else if (isInvertGate) {
-            kernelMask |= APPLY2X2_INVERT;
-        } else if (isPhaseGate) {
-            kernelMask |= APPLY2X2_PHASE;
-        } else if (doCalcNorm) {
-            kernelMask |= APPLY2X2_NORM;
-        }
-    } else if (bitCount == 2) {
-        kernelMask |= APPLY2X2_DOUBLE;
-    }
+  // In an efficient OpenCL kernel, every single byte loaded comes at a significant execution time premium.
+  // We handle single and double bit gates as special cases, for many reasons. Given that we have already separated
+  // these out as special cases, since we know the bit count, we can eliminate the qPowersSorted buffer, by loading
+  // its one or two values into the bciArgs buffer, of the same type. This gives us a significant execution time
+  // savings.
+  size_t bciArgsSize = 4;
+  if (bitCount == 1) {
+    // Single bit gates offsets are always 0 and target bit power. Hence, we overwrite one of the bit offset
+    // arguments.
     if (ngc == maxI) {
-        kernelMask |= APPLY2X2_WIDE;
+      bciArgsSize = 3;
+      bciArgs[2] = qPowersSorted[0] - 1U;
+    } else {
+      bciArgsSize = 4;
+      bciArgs[3] = qPowersSorted[0] - 1U;
     }
+  } else if (bitCount == 2) {
+    // Double bit gates include both controlled and swap gates. To reuse the code for both cases, we need two offset
+    // arguments. Hence, we cannot easily overwrite either of the bit offset arguments.
+    bciArgsSize = 5;
+    bciArgs[3] = qPowersSorted[0] - 1U;
+    bciArgs[4] = qPowersSorted[1] - 1U;
+  }
+  DISPATCH_TEMP_WRITE(poolItem->ulongBuffer, sizeof(bitCapIntOcl) * bciArgsSize, bciArgs);
 
-    OCLAPI api_call;
-    switch (kernelMask) {
-    case APPLY2X2_DEFAULT:
-        api_call = OCL_API_APPLY2X2;
-        break;
-    case APPLY2X2_SINGLE:
-        api_call = OCL_API_APPLY2X2_SINGLE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_X:
-        api_call = OCL_API_X_SINGLE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_Z:
-        api_call = OCL_API_Z_SINGLE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_INVERT:
-        api_call = OCL_API_INVERT_SINGLE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_PHASE:
-        api_call = OCL_API_PHASE_SINGLE;
-        break;
-    case APPLY2X2_NORM | APPLY2X2_SINGLE:
-        api_call = OCL_API_APPLY2X2_NORM_SINGLE;
-        break;
-    case APPLY2X2_DOUBLE:
-        api_call = OCL_API_APPLY2X2_DOUBLE;
-        break;
-    case APPLY2X2_WIDE:
-        api_call = OCL_API_APPLY2X2_WIDE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_WIDE:
-        api_call = OCL_API_APPLY2X2_SINGLE_WIDE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_X:
-        api_call = OCL_API_X_SINGLE_WIDE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_Z:
-        api_call = OCL_API_Z_SINGLE_WIDE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_INVERT:
-        api_call = OCL_API_INVERT_SINGLE_WIDE;
-        break;
-    case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_PHASE:
-        api_call = OCL_API_PHASE_SINGLE_WIDE;
-        break;
-    case APPLY2X2_NORM | APPLY2X2_SINGLE | APPLY2X2_WIDE:
-        api_call = OCL_API_APPLY2X2_NORM_SINGLE_WIDE;
-        break;
-    case APPLY2X2_DOUBLE | APPLY2X2_WIDE:
-        api_call = OCL_API_APPLY2X2_DOUBLE_WIDE;
-        break;
-    default:
-        throw std::runtime_error("Invalid APPLY2X2 kernel selected!");
+  // Load the 2x2 complex matrix and the normalization factor into the complex arguments buffer.
+  complex cmplx[CMPLX_NORM_LEN];
+  std::copy(mtrx, mtrx + 4, cmplx);
+
+  // Is the vector already normalized, or is this method not appropriate for on-the-fly normalization?
+  cmplx[4] = complex(doApplyNorm ? (ONE_R1 / (real1)sqrt(runningNorm)) : ONE_R1, ZERO_R1);
+  cmplx[5] = (real1)norm_thresh;
+
+  BufferPtr locCmplxBuffer;
+  if (!isXGate && !isZGate) {
+    DISPATCH_TEMP_WRITE(poolItem->cmplxBuffer, sizeof(complex) * CMPLX_NORM_LEN, cmplx);
+  }
+
+  // Load a buffer with the powers of 2 of each bit index involved in the operation.
+  BufferPtr locPowersBuffer;
+  if (bitCount > 2) {
+    locPowersBuffer = MakeBuffer(CL_MEM_READ_ONLY, sizeof(bitCapIntOcl) * bitCount);
+    if (sizeof(bitCapInt) == sizeof(bitCapIntOcl)) {
+      DISPATCH_TEMP_WRITE(locPowersBuffer, sizeof(bitCapIntOcl) * bitCount, qPowersSorted);
+    } else {
+      DISPATCH_TEMP_WRITE(locPowersBuffer, sizeof(bitCapIntOcl) * bitCount, qPowersSorted);
     }
+  }
 
-    if (isXGate || isZGate) {
-        QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->ulongBuffer });
+  // We load the appropriate kernel, that does/doesn't CALCULATE the norm, and does/doesn't APPLY the norm.
+  unsigned char kernelMask = APPLY2X2_DEFAULT;
+  if (bitCount == 1) {
+    kernelMask |= APPLY2X2_SINGLE;
+    if (isXGate) {
+      kernelMask |= APPLY2X2_X;
+    } else if (isZGate) {
+      kernelMask |= APPLY2X2_Z;
+    } else if (isInvertGate) {
+      kernelMask |= APPLY2X2_INVERT;
+    } else if (isPhaseGate) {
+      kernelMask |= APPLY2X2_PHASE;
     } else if (doCalcNorm) {
-        if (bitCount > 2) {
-            QueueCall(api_call, ngc, ngs,
+      kernelMask |= APPLY2X2_NORM;
+    }
+  } else if (bitCount == 2) {
+    kernelMask |= APPLY2X2_DOUBLE;
+  }
+  if (ngc == maxI) {
+    kernelMask |= APPLY2X2_WIDE;
+  }
+
+  OCLAPI api_call;
+  switch (kernelMask) {
+  case APPLY2X2_DEFAULT:
+    api_call = OCL_API_APPLY2X2;
+    break;
+  case APPLY2X2_SINGLE:
+    api_call = OCL_API_APPLY2X2_SINGLE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_X:
+    api_call = OCL_API_X_SINGLE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_Z:
+    api_call = OCL_API_Z_SINGLE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_INVERT:
+    api_call = OCL_API_INVERT_SINGLE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_PHASE:
+    api_call = OCL_API_PHASE_SINGLE;
+    break;
+  case APPLY2X2_NORM | APPLY2X2_SINGLE:
+    api_call = OCL_API_APPLY2X2_NORM_SINGLE;
+    break;
+  case APPLY2X2_DOUBLE:
+    api_call = OCL_API_APPLY2X2_DOUBLE;
+    break;
+  case APPLY2X2_WIDE:
+    api_call = OCL_API_APPLY2X2_WIDE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_WIDE:
+    api_call = OCL_API_APPLY2X2_SINGLE_WIDE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_X:
+    api_call = OCL_API_X_SINGLE_WIDE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_Z:
+    api_call = OCL_API_Z_SINGLE_WIDE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_INVERT:
+    api_call = OCL_API_INVERT_SINGLE_WIDE;
+    break;
+  case APPLY2X2_SINGLE | APPLY2X2_WIDE | APPLY2X2_PHASE:
+    api_call = OCL_API_PHASE_SINGLE_WIDE;
+    break;
+  case APPLY2X2_NORM | APPLY2X2_SINGLE | APPLY2X2_WIDE:
+    api_call = OCL_API_APPLY2X2_NORM_SINGLE_WIDE;
+    break;
+  case APPLY2X2_DOUBLE | APPLY2X2_WIDE:
+    api_call = OCL_API_APPLY2X2_DOUBLE_WIDE;
+    break;
+  default:
+    throw std::runtime_error("Invalid APPLY2X2 kernel selected!");
+  }
+
+  if (isXGate || isZGate) {
+    QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->ulongBuffer });
+  } else if (doCalcNorm) {
+    if (bitCount > 2) {
+      QueueCall(api_call, ngc, ngs,
                 { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer, locPowersBuffer, nrmBuffer },
                 sizeof(real1) * ngs);
-        } else {
-            QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer, nrmBuffer },
-                sizeof(real1) * ngs);
-        }
     } else {
-        if (bitCount > 2) {
-            QueueCall(
-                api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer, locPowersBuffer });
-        } else {
-            QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer });
-        }
+      QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer, nrmBuffer },
+                sizeof(real1) * ngs);
     }
+  } else {
+    if (bitCount > 2) {
+      QueueCall(
+        api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer, locPowersBuffer });
+    } else {
+      QueueCall(api_call, ngc, ngs, { stateBuffer, poolItem->cmplxBuffer, poolItem->ulongBuffer });
+    }
+  }
 
-    if (doApplyNorm) {
-        QueueSetRunningNorm(ONE_R1_F);
-    }
+  if (doApplyNorm) {
+    QueueSetRunningNorm(ONE_R1_F);
+  }
 
-    if (!doCalcNorm) {
-        return;
-    }
+  if (!doCalcNorm) {
+    return;
+  }
 
-    // If we have calculated the norm of the state vector in this call, we need to sum the buffer of partial norm
-    // values into a single normalization constant.
-    WAIT_REAL1_SUM(nrmBuffer, ngc / ngs, nrmArray, &runningNorm);
-    if (runningNorm <= FP_NORM_EPSILON) {
-        ZeroAmplitudes();
-    }
+  // If we have calculated the norm of the state vector in this call, we need to sum the buffer of partial norm
+  // values into a single normalization constant.
+  WAIT_REAL1_SUM(nrmBuffer, ngc / ngs, nrmArray, &runningNorm);
+  if (runningNorm <= FP_NORM_EPSILON) {
+    ZeroAmplitudes();
+  }
 }
 
 void QEngineCUDA::BitMask(bitCapIntOcl mask, OCLAPI api_call, real1_f phase)
@@ -1129,7 +1133,7 @@ void QEngineCUDA::UniformlyControlledSingleBit(const std::vector<bitLenInt>& con
 
 void QEngineCUDA::UniformParityRZ(bitCapInt mask, real1_f angle)
 {
-    if (bi_compare(mask, maxQPower) >= 0) {
+    if (bi_compare(mask, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineCUDA::UniformParityRZ mask out-of-bounds!");
     }
 
@@ -2925,7 +2929,7 @@ bitCapInt QEngineCUDA::MAll()
 
 complex QEngineCUDA::GetAmplitude(bitCapInt perm)
 {
-    if (bi_compare(perm, maxQPower) >= 0) {
+    if (bi_compare(perm, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineCUDA::GetAmplitude argument out-of-bounds!");
     }
 
@@ -2940,9 +2944,9 @@ complex QEngineCUDA::GetAmplitude(bitCapInt perm)
     return amp;
 }
 
-void QEngineCUDA::SetAmplitude(bitCapInt perm, complex amp)
+void QEngineCUDA::SetAmplitude(bitCapInt perm, const complex& amp)
 {
-    if (bi_compare(perm, maxQPower) >= 0) {
+    if (bi_compare(perm, maxQPowerOcl) >= 0) {
         throw std::invalid_argument("QEngineCUDA::SetAmplitude argument out-of-bounds!");
     }
 

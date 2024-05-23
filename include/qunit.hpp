@@ -125,7 +125,7 @@ public:
     virtual void GetQuantumState(complex* outputState);
     virtual void GetProbs(real1* outputProbs);
     virtual complex GetAmplitude(bitCapInt perm);
-    virtual void SetAmplitude(bitCapInt perm, complex amp)
+    virtual void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         if (bi_compare(perm, maxQPower) >= 0) {
             throw std::invalid_argument("QUnit::SetAmplitude argument out-of-bounds!");
@@ -134,7 +134,8 @@ public:
         EntangleAll();
         shards[0U].unit->SetAmplitude(perm, amp);
     }
-    virtual void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    virtual void SetPermutation(bitCapInt perm,
+                                const complex& phaseFac = CMPLX_DEFAULT_ARG);
     using QInterface::Compose;
     virtual bitLenInt Compose(QUnitPtr toCopy) { return Compose(toCopy, qubitCount); }
     virtual bitLenInt Compose(QInterfacePtr toCopy) { return Compose(std::dynamic_pointer_cast<QUnit>(toCopy)); }
@@ -391,26 +392,18 @@ public:
         ToPermBasisProb(qubit);
         return ProbBase(qubit);
     }
-    virtual real1_f ProbAll(bitCapInt perm) { return clampProb((real1_f)norm(GetAmplitudeOrProb(perm, true))); }
-    virtual real1_f ProbAllRdm(bool roundRz, bitCapInt perm)
-    {
-        if (shards[0U].unit && (shards[0U].unit->GetQubitCount() == qubitCount)) {
-            OrderContiguous(shards[0U].unit);
-            return shards[0U].unit->ProbAllRdm(roundRz, perm);
-        }
+    virtual real1_f ProbAll(bitCapInt perm) override;
 
-        QUnitPtr clone = std::dynamic_pointer_cast<QUnit>(Clone());
-        QInterfacePtr unit = clone->EntangleAll(true);
-        clone->OrderContiguous(unit);
+    virtual real1_f ProbAllRdm(bool roundRz, bitCapInt perm) override;
 
-        return unit->ProbAllRdm(roundRz, perm);
-    }
     virtual real1_f ProbParity(bitCapInt mask);
     virtual bool ForceMParity(bitCapInt mask, bool result, bool doForce = true);
+
     virtual real1_f SumSqrDiff(QInterfacePtr toCompare)
     {
         return SumSqrDiff(std::dynamic_pointer_cast<QUnit>(toCompare));
     }
+
     virtual real1_f SumSqrDiff(QUnitPtr toCompare);
     virtual real1_f ExpectationBitsFactorized(
         const std::vector<bitLenInt>& bits, const std::vector<bitCapInt>& perms, bitCapInt offset = ZERO_BCI)

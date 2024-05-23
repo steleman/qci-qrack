@@ -926,7 +926,7 @@ void QStabilizerHybrid::SetQuantumState(const complex* inputState)
     Mtrx(mtrx, 0);
 }
 
-void QStabilizerHybrid::SetPermutation(bitCapInt perm, complex phaseFac)
+void QStabilizerHybrid::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     DumpBuffers();
 
@@ -2298,4 +2298,9 @@ std::istream& operator>>(std::istream& is, const QStabilizerHybridPtr s)
 
     return is;
 }
+
+real1_f QStabilizerHybrid::ProbAll(bitCapInt perm) {
+  return (real1_f)norm(GetAmplitudeOrProb(perm, true));
+}
+
 } // namespace Qrack

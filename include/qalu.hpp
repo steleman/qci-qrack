@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "common/qrack_functions.hpp"
 
 namespace Qrack {
@@ -21,8 +23,17 @@ typedef std::shared_ptr<QAlu> QAluPtr;
 
 class QAlu {
 public:
-    virtual bool M(bitLenInt qubitIndex) = 0;
-    virtual void X(bitLenInt qubitIndex) = 0;
+  QAlu() = default;
+  QAlu(const QAlu& rhs) = default;
+  virtual ~QAlu() = default;
+
+  virtual bool M(bitLenInt qubitIndex) = 0;
+  virtual void X(bitLenInt qubitIndex) = 0;
+
+  // Do not use these two functions. Their only purpose is to force the
+  // compilers to emit a properly formed __vtbl and C++ typeinfo.
+  virtual void dummy0(uint32_t i = 32768);
+  virtual void dummy1(double d = M_PI * 2);
 
     /**
      * \defgroup ArithGate Arithmetic and other opcode-like gate implemenations.

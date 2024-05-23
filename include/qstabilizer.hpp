@@ -102,7 +102,7 @@ public:
     void ResetPhaseOffset() { phaseOffset = ZERO_R1; }
     complex GetPhaseOffset() { return std::polar(ONE_R1, phaseOffset); }
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     void SetRandomSeed(uint32_t seed)
     {
@@ -234,7 +234,7 @@ public:
     bitCapInt PermCount() { return pow2(gaussian()); }
 
     void SetQuantumState(const complex* inputState);
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         throw std::domain_error("QStabilizer::SetAmplitude() not implemented!");
     }

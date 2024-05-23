@@ -286,20 +286,15 @@ public:
         bi_div_mod(perm, pageMaxQPower(), &p, &a);
         return qPages[(bitCapIntOcl)p]->GetAmplitude(a);
     }
-    void SetAmplitude(bitCapInt perm, complex amp)
+    void SetAmplitude(bitCapInt perm, const complex& amp)
     {
         bitCapInt p, a;
         bi_div_mod(perm, pageMaxQPower(), &p, &a);
         qPages[(bitCapIntOcl)p]->SetAmplitude(a, amp);
     }
-    real1_f ProbAll(bitCapInt perm)
-    {
-        bitCapInt p, a;
-        bi_div_mod(perm, pageMaxQPower(), &p, &a);
-        return qPages[(bitCapIntOcl)p]->ProbAll(a);
-    }
+    virtual real1_f ProbAll(bitCapInt perm) override;
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
 
     using QEngine::Compose;
     bitLenInt Compose(QPagerPtr toCopy) { return ComposeEither(toCopy, false); }

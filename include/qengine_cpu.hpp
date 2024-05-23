@@ -118,7 +118,7 @@ public:
     void GetQuantumState(complex* outputState);
     void GetProbs(real1* outputProbs);
     complex GetAmplitude(bitCapInt perm);
-    void SetAmplitude(bitCapInt perm, complex amp);
+    void SetAmplitude(bitCapInt perm, const complex& amp);
 
     using QEngine::Compose;
     bitLenInt Compose(QEngineCPUPtr toCopy);
@@ -210,10 +210,12 @@ public:
      * @{
      */
 
-    void SetPermutation(bitCapInt perm, complex phaseFac = CMPLX_DEFAULT_ARG);
+    void SetPermutation(bitCapInt perm, const complex& phaseFac = CMPLX_DEFAULT_ARG);
     using QEngine::UniformlyControlledSingleBit;
-    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls, bitLenInt qubitIndex,
-        const complex* mtrxs, const std::vector<bitCapInt>& mtrxSkipPowers, bitCapInt mtrxSkipValueMask);
+    void UniformlyControlledSingleBit(const std::vector<bitLenInt>& controls,
+                                      bitLenInt qubitIndex, const complex* mtrxs,
+                                      const std::vector<bitCapInt>& mtrxSkipPowers,
+                                      bitCapInt mtrxSkipValueMask);
     void UniformParityRZ(bitCapInt mask, real1_f angle);
     void CUniformParityRZ(const std::vector<bitLenInt>& controls, bitCapInt mask, real1_f angle);
 

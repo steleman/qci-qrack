@@ -16,6 +16,15 @@
 
 namespace Qrack {
 
+real1_f QEngine::ProbAll(bitCapInt fullRegister)
+{
+  if (doNormalize) {
+    NormalizeState();
+  }
+
+  return clampProb((real1_f)norm(GetAmplitude(fullRegister)));
+}
+
 void QEngine::Mtrx(complex const* mtrx, bitLenInt qubit)
 {
     if (IsIdentity(mtrx, false)) {

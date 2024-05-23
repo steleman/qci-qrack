@@ -166,7 +166,7 @@ real1_f QUnitClifford::ProbMask(bitCapInt mask, bitCapInt perm)
     return (real1_f)expectation;
 }
 
-void QUnitClifford::SetPermutation(bitCapInt perm, complex phaseFac)
+void QUnitClifford::SetPermutation(bitCapInt perm, const complex& phaseFac)
 {
     Dump();
 

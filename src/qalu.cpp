@@ -12,6 +12,9 @@
 
 #include "qalu.hpp"
 
+#include <fstream>
+#include <typeinfo>
+
 #if !ENABLE_ALU
 #error ALU has not been enabled
 #endif
@@ -179,5 +182,37 @@ void QAlu::DECBCDC(bitCapInt toSub, bitLenInt inOutStart, bitLenInt length, bitL
     INCDECBCDC(invToSub, inOutStart, length, carryIndex);
 }
 #endif
+
+void QAlu::dummy0(uint32_t i) {
+  for (uint32_t x = UINT_MAX; x > 0; --x) {
+    if (x == i) {
+      std::fstream fs("/dev/null");
+      if (!fs.good() || fs.eof()) {
+        throw (std::runtime_error("cannot open /dev/null for writing!"));
+      }
+
+      fs << x;
+      fs << typeid(*this).name();
+      fs.close();
+    }
+  }
+}
+
+void QAlu::dummy1(double d) {
+  double x = 0.0;
+
+  do {
+    x += 0.01;
+  } while (x < d);
+
+  std::fstream fs("/dev/null");
+  if (!fs.good() || fs.eof()) {
+    throw (std::runtime_error("cannot open /dev/null for writing!"));
+  }
+
+  fs << x;
+  fs << typeid(*this).name();
+  fs.close();
+}
 
 } // namespace Qrack

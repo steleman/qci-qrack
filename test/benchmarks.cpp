@@ -10,20 +10,20 @@
 // See LICENSE.md in the project root or https://www.gnu.org/licenses/lgpl-3.0.en.html
 // for details.
 
-#include "qcircuit.hpp"
-#include "qfactory.hpp"
+#include <qcircuit.hpp>
+#include <qfactory.hpp>
 
 #include <atomic>
 #include <chrono>
 #include <iostream>
 #include <list>
 #include <set>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
 #include <sys/stat.h>
 
 #include "catch.hpp"
-
 #include "tests.hpp"
 
 #if ENABLE_OPENCL
@@ -674,7 +674,7 @@ TEST_CASE("test_quantum_triviality", "[supreme]")
     benchmarkLoop(
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
-            for (int d = 0; d < depth; d++) {
+            for (uint32_t d = 0; d < depth; d++) {
 
                 bitCapInt xMask = ZERO_BCI;
                 bitCapInt yMask = ZERO_BCI;
@@ -737,7 +737,7 @@ TEST_CASE("test_stabilizer", "[supreme]")
     benchmarkLoop(
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
-            for (int d = 0; d < depth; d++) {
+            for (uint32_t d = 0; d < depth; d++) {
                 bitCapInt xMask = ZERO_BCI;
                 bitCapInt yMask = ZERO_BCI;
                 for (bitLenInt i = 0; i < n; i++) {
@@ -790,7 +790,7 @@ TEST_CASE("test_stabilizer_t", "[supreme]")
 
     benchmarkLoop([&](QInterfacePtr qReg, bitLenInt n) {
         const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             bitCapInt zMask = ZERO_BCI;
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
@@ -914,7 +914,7 @@ TEST_CASE("test_stabilizer_t_cc", "[supreme]")
 
     benchmarkLoop([&](QInterfacePtr qReg, bitLenInt n) {
         const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             bitCapInt zMask = ZERO_BCI;
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
@@ -1081,7 +1081,7 @@ TEST_CASE("test_stabilizer_t_nn", "[supreme]")
 
         const auto iterClock = std::chrono::high_resolution_clock::now();
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
                 real1_f gateRand = DimCount1Qb * qReg->Rand();
@@ -1274,7 +1274,7 @@ TEST_CASE("test_stabilizer_t_nn_d", "[supreme]")
 
         const auto iterClock = std::chrono::high_resolution_clock::now();
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             bitCapInt zMask = ZERO_BCI;
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
@@ -1445,7 +1445,7 @@ TEST_CASE("test_stabilizer_rz", "[supreme]")
             qubitSet.insert(i);
         }
 
-        for (int d = 0; d < depth; ++d) {
+        for (uint32_t d = 0; d < depth; ++d) {
             for (bitLenInt i = 0; i < n; ++i) {
                 for (int j = 0; j < 3; ++j) {
                     // We're trying to cover 3 Pauli axes
@@ -1521,7 +1521,7 @@ TEST_CASE("test_stabilizer_rz_nn", "[supreme]")
 
         const auto iterClock = std::chrono::high_resolution_clock::now();
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             bitCapInt zMask = ZERO_BCI;
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
@@ -1695,7 +1695,7 @@ TEST_CASE("test_dense", "[supreme]")
         }
         const int rowLen = n / colLen;
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 const real1_f theta = 4 * (real1_f)PI_R1 * qReg->Rand();
                 const real1_f phi = 4 * (real1_f)PI_R1 * qReg->Rand();
@@ -1807,7 +1807,7 @@ TEST_CASE("test_stabilizer_t_cc_nn", "[supreme]")
         // qReg->SetReactiveSeparate(n > maxShardQubits);
         qReg->SetReactiveSeparate(true);
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
                 real1_f gateRand = DimCount1Qb * qReg->Rand();
@@ -2046,7 +2046,7 @@ TEST_CASE("test_circuit_t_nn", "[supreme]")
 
         QCircuitPtr circuit = std::make_shared<QCircuit>();
 
-        for (int d = 0; d < n; d++) {
+        for (uint32_t d = 0; d < n; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
                 real1_f gateRand = DimCount1Qb * qReg->Rand();
@@ -2212,7 +2212,7 @@ TEST_CASE("test_circuit_t_nn_generate_and_load", "[supreme]")
 
         QCircuitPtr circuit = std::make_shared<QCircuit>();
 
-        for (int d = 0; d < n; d++) {
+        for (uint32_t d = 0; d < n; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
                 real1_f gateRand = DimCount1Qb * qReg->Rand();
@@ -2427,7 +2427,7 @@ TEST_CASE("test_noisy_stabilizer_t_cc_nn", "[supreme]")
         // qReg->SetReactiveSeparate(n > maxShardQubits);
         qReg->SetReactiveSeparate(true);
 
-        for (int d = 0; d < depth; d++) {
+        for (uint32_t d = 0; d < depth; d++) {
             for (bitLenInt i = 0; i < n; i++) {
                 // "Phase" transforms:
                 real1_f gateRand = DimCount1Qb * qReg->Rand();
@@ -2671,7 +2671,7 @@ TEST_CASE("test_dense_cc_nn", "[supreme]")
     benchmarkLoop([&](QInterfacePtr qReg, bitLenInt n) {
         const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-        int d;
+        uint32_t d;
         bitLenInt i;
         real1_f gateRand;
         bitLenInt b1, b2, b3 = 0;
@@ -2891,7 +2891,7 @@ TEST_CASE("test_noisy_dense_cc_nn", "[supreme]")
     benchmarkLoop([&](QInterfacePtr qReg, bitLenInt n) {
         const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-        int d;
+        uint32_t d;
         bitLenInt i;
         real1_f gateRand;
         bitLenInt b1, b2, b3 = 0;
@@ -3114,7 +3114,7 @@ TEST_CASE("test_stabilizer_ct_nn", "[supreme]")
     benchmarkLoop([&](QInterfacePtr qReg, bitLenInt n) {
         const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-        int d;
+        uint32_t d;
         bitLenInt i, gate;
         real1_f gateRand;
         complex top, bottom;
@@ -3340,7 +3340,7 @@ TEST_CASE("test_universal_circuit_continuous", "[supreme]")
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-            int d;
+            uint32_t d;
             bitLenInt i;
             real1_f theta, phi, lambda;
             bitLenInt b1, b2;
@@ -3392,7 +3392,7 @@ TEST_CASE("test_universal_circuit_discrete", "[supreme]")
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-            int d;
+            uint32_t d;
             bitLenInt i;
             real1_f gateRand;
             bitLenInt b1, b2, b3;
@@ -3454,7 +3454,7 @@ TEST_CASE("test_universal_circuit_digital", "[supreme]")
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-            int d;
+            uint32_t d;
             bitLenInt i;
             real1_f gateRand;
             bitLenInt b1, b2, b3;
@@ -3529,7 +3529,7 @@ TEST_CASE("test_universal_circuit_analog", "[supreme]")
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-            int d;
+            uint32_t d;
             bitLenInt i;
             real1_f gateRand;
             bitLenInt b1, b2, b3;
@@ -3609,7 +3609,7 @@ TEST_CASE("test_ccz_ccx_h", "[supreme]")
         [&](QInterfacePtr qReg, bitLenInt n) {
             const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
 
-            int d;
+            uint32_t d;
             bitLenInt i;
             real1_f gateRand;
             bitLenInt b1, b2, b3;
@@ -3706,7 +3706,7 @@ TEST_CASE("test_quantum_supremacy", "[supreme]")
         bitLenInt gate;
         int b1, b2;
         bitLenInt i;
-        int d;
+        uint32_t d;
         int row, col;
         int tempRow, tempCol;
 
@@ -3906,8 +3906,9 @@ TEST_CASE("test_random_circuit_sampling_nn", "[speed]")
                     if (tempRow < 0 || tempCol < 0 || tempRow >= rowLen || tempCol >= rowLen) {
                         continue;
                     }
-                    int b1 = row * rowLen + col;
-                    int b2 = tempRow * rowLen + tempCol;
+
+                    uint32_t b1 = row * rowLen + col;
+                    uint32_t b2 = tempRow * rowLen + tempCol;
                     if (b1 >= n || b2 >= n) {
                         continue;
                     }
@@ -3996,8 +3997,8 @@ TEST_CASE("test_random_circuit_sampling_nn_orbifold", "[speed]")
                         tempCol -= rowLen;
                     }
 
-                    int b1 = row * rowLen + col;
-                    int b2 = tempRow * rowLen + tempCol;
+                    uint32_t b1 = row * rowLen + col;
+                    uint32_t b2 = tempRow * rowLen + tempCol;
                     if (b1 >= n || b2 >= n) {
                         continue;
                     }
@@ -5044,17 +5045,17 @@ TEST_CASE("test_noisy_fidelity_validation", "[supreme]")
 
     const int GateCountMultiQb = 14;
     const int GateCount2Qb = 8;
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "WARNING: These outputs are meant to be piped to a file." << std::endl;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
 
-    int d;
-    int i;
-    int maxGates;
+    uint32_t d;
+    uint32_t i;
+    uint32_t maxGates;
 
-    int gate;
+    uint32_t gate;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
 
@@ -5182,7 +5183,7 @@ TEST_CASE("test_noisy_fidelity_validation", "[supreme]")
 
         for (d = 0; d < n; d++) {
             std::vector<SingleQubitGate>& layer1QbRands = gate1QbRands[d];
-            for (i = 0; i < (int)layer1QbRands.size(); i++) {
+            for (i = 0; i < (uint32_t)layer1QbRands.size(); i++) {
                 SingleQubitGate gate1Qb = layer1QbRands[i];
                 testCase->U(i, gate1Qb.th, gate1Qb.ph, gate1Qb.lm);
                 // std::cout << "qReg->U(" << (int)i << ", " << gate1Qb.th << ", " << gate1Qb.ph << ", " << gate1Qb.lm
@@ -5190,7 +5191,7 @@ TEST_CASE("test_noisy_fidelity_validation", "[supreme]")
             }
 
             std::vector<MultiQubitGate>& layerMultiQbRands = gateMultiQbRands[d];
-            for (i = 0; i < (int)layerMultiQbRands.size(); i++) {
+            for (i = 0; i < (uint32_t)layerMultiQbRands.size(); i++) {
                 MultiQubitGate multiGate = layerMultiQbRands[i];
                 if (multiGate.gate == 0) {
                     testCase->ISwap(multiGate.b1, multiGate.b2);
@@ -5960,8 +5961,8 @@ TEST_CASE("test_noisy_fidelity_nn_validation", "[supreme]")
 
     const int GateCountMultiQb = 14;
     const int GateCount2Qb = 8;
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "WARNING: These outputs are meant to be piped to a file." << std::endl;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
@@ -5980,8 +5981,8 @@ TEST_CASE("test_noisy_fidelity_nn_validation", "[supreme]")
     }
     int rowLen = w / colLen;
 
-    int d;
-    int i;
+    uint32_t d;
+    uint32_t i;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
 
@@ -6568,9 +6569,9 @@ TEST_CASE("test_noisy_fidelity_2qb_nn_validation", "[supreme]")
 {
     std::cout << ">>> 'test_noisy_fidelity_2qb_nn_validation':" << std::endl;
 
-    const int GateCount2Qb = 8;
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t GateCount2Qb = 8;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "WARNING: These outputs are meant to be piped to a file." << std::endl;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
@@ -6589,8 +6590,8 @@ TEST_CASE("test_noisy_fidelity_2qb_nn_validation", "[supreme]")
     }
     int rowLen = w / colLen;
 
-    int d;
-    int i;
+    uint32_t d;
+    uint32_t i;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
 
@@ -6618,7 +6619,7 @@ TEST_CASE("test_noisy_fidelity_2qb_nn_validation", "[supreme]")
             circuit->AppendGate(std::make_shared<QCircuitGate>(i, uGate));
         }
 
-        int gate = gateSequence.front();
+        uint32_t gate = gateSequence.front();
         std::vector<bitLenInt> usedBits;
 
         for (int row = 1; row < rowLen; row += 2) {
@@ -6652,7 +6653,7 @@ TEST_CASE("test_noisy_fidelity_2qb_nn_validation", "[supreme]")
                 usedBits.push_back(b1);
                 usedBits.push_back(b2);
 
-                gate = (int)(rng->Rand() * GateCount2Qb);
+                gate = (uint32_t)(rng->Rand() * GateCount2Qb);
                 if (gate >= GateCount2Qb) {
                     gate = GateCount2Qb - 1U;
                 }
@@ -7106,7 +7107,7 @@ TEST_CASE("test_noisy_fidelity_2qb_nn_comparison", "[supreme]")
 TEST_CASE("test_noisy_rcs_nn", "[speed]")
 {
     // "nn" stands for "nearest-neighbor (coupler gates)"
-    const int n = max_qubits;
+    const uint32_t n = max_qubits;
     const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
     if (benchmarkDepth <= 0) {
         std::cout << "(random circuit depth: square)" << std::endl;
@@ -7120,9 +7121,9 @@ TEST_CASE("test_noisy_rcs_nn", "[speed]")
     // The 2 bit indicates +/- row offset.
     // This is the "ABCDCDAB" pattern, from the Cirq definition of the circuit in the supplemental materials to the
     // paper.
-    std::vector<int> gateSequence = { 0, 3, 2, 1, 2, 1, 0, 3 };
+    std::vector<uint32_t> gateSequence = { 0, 3, 2, 1, 2, 1, 0, 3 };
     const int rowLen = std::ceil(std::sqrt(n));
-    const int GateCount2Qb = 12;
+    const uint32_t GateCount2Qb = 12U;
 
     auto start = std::chrono::high_resolution_clock::now();
     double sdrp = 1.0 - 0.025;
@@ -7163,7 +7164,7 @@ TEST_CASE("test_noisy_rcs_nn", "[speed]")
                 qReg->RZ(qReg->Rand() * 2 * PI_R1, i);
             }
 
-            int gate = gateSequence.front();
+            uint32_t gate = gateSequence.front();
             gateSequence.erase(gateSequence.begin());
             gateSequence.push_back(gate);
             for (int row = 1; row < rowLen; row += 2) {
@@ -7175,8 +7176,8 @@ TEST_CASE("test_noisy_rcs_nn", "[speed]")
                     if (tempRow < 0 || tempCol < 0 || tempRow >= rowLen || tempCol >= rowLen) {
                         continue;
                     }
-                    int b1 = row * rowLen + col;
-                    int b2 = tempRow * rowLen + tempCol;
+                    uint32_t b1 = row * rowLen + col;
+                    uint32_t b2 = tempRow * rowLen + tempCol;
                     if (b1 >= n || b2 >= n) {
                         continue;
                     }
@@ -7240,7 +7241,7 @@ TEST_CASE("test_noisy_rcs_nn", "[speed]")
 TEST_CASE("test_noisy_rcs_u3_nn", "[speed]")
 {
     // "nn" stands for "nearest-neighbor (coupler gates)"
-    const int n = max_qubits;
+    const uint32_t n = max_qubits;
     const bitLenInt depth = (benchmarkDepth <= 0) ? n : benchmarkDepth;
     if (benchmarkDepth <= 0) {
         std::cout << "(random circuit depth: square)" << std::endl;
@@ -7254,9 +7255,9 @@ TEST_CASE("test_noisy_rcs_u3_nn", "[speed]")
     // The 2 bit indicates +/- row offset.
     // This is the "ABCDCDAB" pattern, from the Cirq definition of the circuit in the supplemental materials to the
     // paper.
-    std::vector<int> gateSequence = { 0, 3, 2, 1, 2, 1, 0, 3 };
+    std::vector<uint32_t> gateSequence = { 0, 3, 2, 1, 2, 1, 0, 3 };
     const int rowLen = std::ceil(std::sqrt(n));
-    const int GateCount2Qb = 12;
+    const uint32_t GateCount2Qb = 12U;
 
     auto start = std::chrono::high_resolution_clock::now();
     double sdrp = 1.0 - 0.025;
@@ -7307,8 +7308,8 @@ TEST_CASE("test_noisy_rcs_u3_nn", "[speed]")
                     if (tempRow < 0 || tempCol < 0 || tempRow >= rowLen || tempCol >= rowLen) {
                         continue;
                     }
-                    int b1 = row * rowLen + col;
-                    int b2 = tempRow * rowLen + tempCol;
+                    uint32_t b1 = row * rowLen + col;
+                    uint32_t b2 = tempRow * rowLen + tempCol;
                     if (b1 >= n || b2 >= n) {
                         continue;
                     }
@@ -7861,8 +7862,8 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
     std::cout << "WARNING: These outputs are meant to be piped to a file." << std::endl;
     std::cout << "WARNING: 54 qubit reading is rather 53 qubits with Sycamore's excluded qubit." << std::endl;
 
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
 
@@ -7881,10 +7882,10 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
     }
     int rowLen = w / colLen;
 
-    int d;
-    int i;
+    uint32_t d;
+    uint32_t i;
 
-    int gate;
+    uint32_t gate;
 
     int row, col;
 
@@ -7898,7 +7899,7 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
 
     std::vector<std::vector<int>> gate1QbRands(n);
     std::vector<std::vector<MultiQubitGate>> gateMultiQbRands(n);
-    std::vector<int> lastSingleBitGates;
+    std::vector<uint32_t> lastSingleBitGates;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
 
@@ -7914,11 +7915,11 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
 
             // The same gate is not applied twice consecutively in sequence.
 
-            int gate;
+            uint32_t gate;
             if (d == 0) {
                 // For the first iteration, we can pick any gate.
 
-                gate = (int)(3 * rng->Rand());
+                gate = (uint32_t) (3 * rng->Rand());
                 if (gate > 2) {
                     gate = 2;
                 }
@@ -8017,7 +8018,7 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
 
         for (d = 0; d < n; d++) {
             std::vector<int>& layer1QbRands = gate1QbRands[d];
-            for (i = 0; i < (int)layer1QbRands.size(); i++) {
+            for (i = 0; i < (uint32_t)layer1QbRands.size(); i++) {
                 if ((w == 54U) && (i == deadQubit)) {
                     continue;
                 }
@@ -8036,7 +8037,7 @@ TEST_CASE("test_noisy_sycamore_validation", "[supreme]")
             }
 
             std::vector<MultiQubitGate>& layerMultiQbRands = gateMultiQbRands[d];
-            for (i = 0; i < (int)layerMultiQbRands.size(); i++) {
+            for (i = 0; i < (uint32_t) layerMultiQbRands.size(); i++) {
                 MultiQubitGate multiGate = layerMultiQbRands[i];
                 const bitLenInt b1 = multiGate.b1;
                 const bitLenInt b2 = multiGate.b2;
@@ -8093,9 +8094,9 @@ TEST_CASE("test_stabilizer_rz_mirror", "[supreme]")
 {
     std::cout << ">>> 'test_stabilizer_rz_mirror':" << std::endl;
 
-    const int GateCount2Qb = 8;
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t GateCount2Qb = 8;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
 
@@ -8117,7 +8118,7 @@ TEST_CASE("test_stabilizer_rz_mirror", "[supreme]")
 
     QInterfacePtr rng = CreateQuantumInterface(engineStack, 1, ZERO_BCI);
 
-    for (int d = 0; d < n; d++) {
+    for (uint32_t d = 0; d < n; d++) {
 #if defined(_WIN32) && !defined(__CYGWIN__)
         const bitLenInt layerMagicQubit = max((real1_s)(w - 1), (real1_s)(w * rng->Rand()));
         const bitLenInt layerMagicAxis = max((real1_s)2, (real1_s)(3 * rng->Rand()));
@@ -8125,9 +8126,9 @@ TEST_CASE("test_stabilizer_rz_mirror", "[supreme]")
         const bitLenInt layerMagicQubit = std::max((real1_s)(w - 1), (real1_s)(w * rng->Rand()));
         const bitLenInt layerMagicAxis = std::max((real1_s)2, (real1_s)(3 * rng->Rand()));
 #endif
-        for (int i = 0; i < w; i++) {
+        for (uint32_t i = 0; i < w; i++) {
             // Random general 3-parameter unitary gate via "x-z-x" Euler angles:
-            for (int p = 0; p < 3; ++p) {
+            for (uint32_t p = 0; p < 3; ++p) {
                 circuit->AppendGate(std::make_shared<QCircuitGate>(i, h));
 
                 // Clifford rotation
@@ -8151,7 +8152,7 @@ TEST_CASE("test_stabilizer_rz_mirror", "[supreme]")
         while (unusedBits.size() > 1) {
             const bitLenInt b1 = pickRandomBit(rng->Rand(), &unusedBits);
             const bitLenInt b2 = pickRandomBit(rng->Rand(), &unusedBits);
-            int gate = (int)(rng->Rand() * GateCount2Qb);
+            uint32_t gate = (uint32_t) (rng->Rand() * GateCount2Qb);
             if (gate >= GateCount2Qb) {
                 gate = GateCount2Qb - 1U;
             }
@@ -8206,9 +8207,9 @@ TEST_CASE("test_stabilizer_rz_nn_mirror", "[supreme]")
 {
     std::cout << ">>> 'test_stabilizer_rz_nn_mirror':" << std::endl;
 
-    const int GateCount2Qb = 8;
-    const int w = max_qubits;
-    const int n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
+    const uint32_t GateCount2Qb = 8U;
+    const uint32_t w = max_qubits;
+    const uint32_t n = (benchmarkDepth <= 0) ? w : benchmarkDepth;
     std::cout << "Circuit width: " << w << std::endl;
     std::cout << "Circuit layer depth (excluding factor of x2 for mirror validation): " << n << std::endl;
 
@@ -8226,8 +8227,8 @@ TEST_CASE("test_stabilizer_rz_nn_mirror", "[supreme]")
     }
     int rowLen = w / colLen;
 
-    int d;
-    int i;
+    uint32_t d;
+    uint32_t i;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
 
@@ -8252,7 +8253,7 @@ TEST_CASE("test_stabilizer_rz_nn_mirror", "[supreme]")
 #endif
         for (i = 0; i < w; i++) {
             // Random general 3-parameter unitary gate via "x-z-x" Euler angles:
-            for (int p = 0; p < 3; ++p) {
+            for (uint32_t p = 0; p < 3; ++p) {
                 circuit->AppendGate(std::make_shared<QCircuitGate>(i, h));
 
                 // Clifford rotation
@@ -8272,7 +8273,7 @@ TEST_CASE("test_stabilizer_rz_nn_mirror", "[supreme]")
             }
         }
 
-        int gate = gateSequence.front();
+        uint32_t gate = gateSequence.front();
         std::vector<bitLenInt> usedBits;
 
         for (int row = 1; row < rowLen; row += 2) {
@@ -8306,7 +8307,7 @@ TEST_CASE("test_stabilizer_rz_nn_mirror", "[supreme]")
                 usedBits.push_back(b1);
                 usedBits.push_back(b2);
 
-                gate = (int)(rng->Rand() * GateCount2Qb);
+                gate = (uint32_t) (rng->Rand() * GateCount2Qb);
                 if (gate >= GateCount2Qb) {
                     gate = GateCount2Qb - 1U;
                 }
@@ -8566,7 +8567,7 @@ TEST_CASE("test_noisy_qft_cosmology_estimate", "[supreme_estimate]")
 {
     std::cout << ">>> 'test_noisy_qft_cosmology_estimate':" << std::endl;
 
-    const int w = max_qubits;
+    const uint32_t w = max_qubits;
     std::cout << "Circuit width: " << w << std::endl;
 
     const std::vector<QInterfaceEngine> engineStack = BuildEngineStack();
